@@ -196,6 +196,38 @@ Ketik `y` / tekan Enter, lalu proses upload akan berjalan:
 
 ---
 
+## 🔌 INTEGRASI MODEL CONTEXT PROTOCOL (MCP) SERVER
+
+Binary `./youtube-autoposter` ini dapat dijalankan langsung sebagai **MCP Server (Model Context Protocol)** berbasis `stdio` JSON-RPC 2.0.
+
+### 1. Cara Menjalankan MCP Server
+```bash
+./youtube-autoposter -mcp
+```
+
+### 2. Cara Menambahkan ke MCP Client / AI Agent Configuration
+
+Tambahkan konfigurasi berikut ke file konfigurasi MCP (seperti `claude_desktop_config.json`, `mcp.json`, atau `agy.json`):
+
+```json
+{
+  "mcpServers": {
+    "youtube-autoposter": {
+      "command": "/home/gemari-pc/Documents/Sodikin/Agent/siapdigital/youtube-autoposter/youtube-autoposter",
+      "args": ["-mcp"]
+    }
+  }
+}
+```
+
+### 🛠️ Tool MCP yang Disediakan:
+1. `list_profiles`: Mengembalikan daftar profile akun YouTube yang tersimpan.
+2. `list_channels`: Mengembalikan daftar channel YouTube yang terhubung pada profile.
+3. `list_videos`: Pindai folder secara rekursif untuk mendeteksi file video (`.mp4`, `.mkv`, dll).
+4. `upload_video`: Meng-upload video ke YouTube dengan thumbnail, deskripsi, tags, dan privasi.
+
+---
+
 ## 🤖 UNTUK AI AGENT & AUTOMATION SCRIPT (NON-INTERAKTIF)
 
 Jika kamu ingin menjalankan via **Scripting / Cronjob / AI Agent (Google Antigravity / Gemini / Claude)**, gunakan flag CLI langsung:

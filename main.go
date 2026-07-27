@@ -11,6 +11,7 @@ import (
 	"youtube-autoposter/internal/cli"
 	"youtube-autoposter/internal/domain"
 	"youtube-autoposter/internal/infrastructure/oauth"
+	"youtube-autoposter/internal/mcp"
 	"youtube-autoposter/internal/usecase"
 )
 
@@ -30,13 +31,22 @@ func main() {
 		interactive   = flag.Bool("i", false, "Jalankan dalam mode interaktif (User POV)")
 		jsonOutput    = flag.Bool("json", false, "Output hasil dalam format JSON (Machine / AI Agent POV)")
 
-		// AI Agent Inspection Flags
+		// AI Agent Inspection & MCP Flags
+		mcpMode      = flag.Bool("mcp", false, "Jalankan sebagai Model Context Protocol (MCP) Server via stdio")
 		listProfiles = flag.Bool("list-profiles", false, "AI Agent: Tampilkan daftar profile token akun dalam JSON")
 		listChannels = flag.Bool("list-channels", false, "AI Agent: Tampilkan daftar channel YouTube pada token dalam JSON")
 		listVideos   = flag.Bool("list-videos", false, "AI Agent: Pindai dan tampilkan daftar file video dalam JSON")
 	)
 
 	flag.Parse()
+
+	ctx := context.Background()
+
+	// 0. Model Context Protocol (MCP) Server Mode
+	if *mcpMode {
+		mcp.StartMCPServer(ctx, *secretFile)
+		return
+	}
 
 	// Handle Profile Name flag mapping
 	if *profileName != "" {
@@ -78,8 +88,6 @@ func main() {
 	oauthProvider := oauth.NewGoogleOAuthProvider()
 	getChannelInfoUseCase := usecase.NewGetChannelInfoUseCase(oauthProvider)
 	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
-
-	ctx := context.Background()
 
 	// 3. AI Agent Inspection Flag: List Channels
 	if *listChannels {
