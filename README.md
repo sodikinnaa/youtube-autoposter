@@ -113,4 +113,6 @@ Keamanan kredensial dan akunmu adalah prioritas utama:
 
 ## 📄 LISENSI
 
-Proyek ini dilisensikan di bawah **[MIT License](LICENSE)**. Kamu bebas menggunakan, mengubah, dan mendistribusikan ulang kode ini sesuai ketentuan lisensi MIT.
+Proyek ini dilisensikan di bawah **[MIT License](LICENSE)**. 
+
+Kode ini **100% bebas dipakai untuk apa saja** — bebas digunakan, dimodifikasi, didistribusikan ulang, atau dijual untuk kebutuhan pribadi maupun komersial tanpa batasan apa pun.
