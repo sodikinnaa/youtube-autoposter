@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"youtube-autoposter/internal/infrastructure/oauth"
 	"youtube-autoposter/internal/usecase"
 )
 
@@ -19,7 +20,44 @@ func RunInteractiveMode(ctx context.Context, secretFile, tokenFile string, getCh
 	fmt.Println("\n=======================================================")
 	fmt.Println("🎬 YOUTUBE AUTO-POSTER - INTERACTIVE WIZARD")
 	fmt.Println("=======================================================")
-	fmt.Println("🔍 Memeriksa kredensial OAuth & Koneksi Channel YouTube...")
+
+	// 0. MULTI-ACCOUNT PROFILE MANAGER
+	profiles, _ := oauth.ListProfiles()
+	if len(profiles) > 0 {
+		fmt.Println("\n=======================================================")
+		fmt.Println("👥 PILIH AKUN YOUTUBE (MULTI-ACCOUNT MANAGER)")
+		fmt.Println("=======================================================")
+		for i, p := range profiles {
+			fmt.Printf("  [%d] %s (%s)\n", i+1, p.Name, p.TokenFile)
+		}
+		newAccIdx := len(profiles) + 1
+		fmt.Printf("  [%d] + Tambah / Login Akun YouTube Baru\n", newAccIdx)
+		fmt.Printf("Pilihan Akun (1-%d) [default: 1]: ", newAccIdx)
+
+		pChoiceStr, _ := reader.ReadString('\n')
+		pChoiceStr = strings.TrimSpace(pChoiceStr)
+
+		var choiceIdx int
+		if pChoiceStr == "" {
+			choiceIdx = 1
+		} else {
+			fmt.Sscanf(pChoiceStr, "%d", &choiceIdx)
+		}
+
+		if choiceIdx == newAccIdx {
+			fmt.Print("\nMasukkan Nama/Alias untuk Akun Baru ini (contoh: channel_dua): ")
+			aliasInput, _ := reader.ReadString('\n')
+			alias := strings.TrimSpace(aliasInput)
+			if alias != "" {
+				tokenFile = oauth.GetTokenFileForProfile(alias)
+				fmt.Printf("✅ Menyiapkan profile token baru di '%s'...\n", tokenFile)
+			}
+		} else if choiceIdx >= 1 && choiceIdx <= len(profiles) {
+			tokenFile = profiles[choiceIdx-1].TokenFile
+		}
+	}
+
+	fmt.Println("\n🔍 Memeriksa kredensial OAuth & Koneksi Channel YouTube...")
 
 	// 1. VERIFIKASI KREDENSIAL & AKUN CHANNEL YOUTUBE DAHULU
 	channelInfo, err := getChannelInfoUseCase.Execute(ctx, secretFile, tokenFile)
