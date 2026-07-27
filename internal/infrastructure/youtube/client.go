@@ -106,9 +106,10 @@ func (c *Client) UploadVideo(ctx context.Context, video domain.Video) (*domain.U
 
 	elapsed := time.Since(start)
 	result := &domain.UploadResult{
-		ID:       res.Id,
-		WatchURL: fmt.Sprintf("https://www.youtube.com/watch?v=%s", res.Id),
-		Duration: elapsed.Round(time.Second),
+		ID:          res.Id,
+		WatchURL:    fmt.Sprintf("https://www.youtube.com/watch?v=%s", res.Id),
+		Duration:    elapsed.Round(time.Second),
+		DurationStr: elapsed.Round(time.Second).String(),
 	}
 
 	// Upload Thumbnail jika diberikan

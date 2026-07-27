@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -25,6 +26,7 @@ func main() {
 		secretFile    = flag.String("secret", "client_secret.json", "Path ke file OAuth client_secret.json")
 		tokenFile     = flag.String("token", "token.json", "Path ke simpanan token.json")
 		interactive   = flag.Bool("i", false, "Jalankan dalam mode interaktif (User POV)")
+		jsonOutput    = flag.Bool("json", false, "Output hasil upload dalam format JSON (Machine / AI Agent POV)")
 	)
 
 	flag.Parse()
@@ -71,6 +73,15 @@ func main() {
 	}
 
 	result, err := uploadUseCase.Execute(ctx, input)
+	if *jsonOutput {
+		if err != nil {
+			fmt.Printf(`{"status":"error","message":%q}`+"\n", err.Error())
+			os.Exit(1)
+		}
+		json.NewEncoder(os.Stdout).Encode(result)
+		return
+	}
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "\n❌ Error: %v\n", err)
 		os.Exit(1)
@@ -80,7 +91,7 @@ func main() {
 	fmt.Println("🎉 UPLOAD VIDEO BERHASIL DIPROSES!")
 	fmt.Printf("📺 Video ID    : %s\n", result.ID)
 	fmt.Printf("🔗 Link Watch  : %s\n", result.WatchURL)
-	fmt.Printf("⏱️  Durasi Upload: %s\n", result.Duration)
+	fmt.Printf("⏱️  Durasi Upload: %s\n", result.DurationStr)
 	if result.HasCustomThumb {
 		fmt.Println("🖼️  Thumbnail   : Custom Thumbnail Berhasil Dipasang")
 	}

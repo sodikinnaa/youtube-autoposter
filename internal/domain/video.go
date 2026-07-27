@@ -29,18 +29,19 @@ type Video struct {
 
 // ChannelInfo represents connected YouTube channel details
 type ChannelInfo struct {
-	ID              string
-	Title           string
-	SubscriberCount uint64
-	VideoCount      uint64
+	ID              string `json:"id"`
+	Title           string `json:"title"`
+	SubscriberCount uint64 `json:"subscriber_count"`
+	VideoCount      uint64 `json:"video_count"`
 }
 
 // UploadResult represents the result of a successful upload
 type UploadResult struct {
-	ID             string
-	WatchURL       string
-	Duration       time.Duration
-	HasCustomThumb bool
+	ID             string        `json:"id"`
+	WatchURL       string        `json:"watch_url"`
+	Duration       time.Duration `json:"-"`
+	DurationStr    string        `json:"duration"`
+	HasCustomThumb bool          `json:"has_custom_thumb"`
 }
 
 // Errors
