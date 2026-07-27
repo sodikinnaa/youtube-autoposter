@@ -1,63 +1,93 @@
 ---
 name: youtube-autoposter
-description: Upload videos, thumbnails, set privacy, and schedule publish on YouTube automatically via Golang CLI binary.
+description: Comprehensive YouTube Auto-Poster CLI for AI agents. Inspect accounts, channels, video files, and upload videos with custom thumbnails non-interactively using structured JSON outputs.
 ---
 
-# YouTube Auto-Poster Skill Guide
+# 🤖 YouTube Auto-Poster Agent Skill Guide
 
-This skill allows AI agents to automatically upload videos, assign custom thumbnails, and schedule video publications to YouTube using the `./youtube-autoposter` binary.
-
-## Binary Location
-Absolute Path: `/home/gemari-pc/Documents/Sodikin/Agent/siapdigital/youtube-autoposter/youtube-autoposter`
-Relative Path: `./youtube-autoposter/youtube-autoposter`
+This skill allows AI agents to inspect, manage, and upload videos to YouTube autonomously using the `./youtube-autoposter` binary.
 
 ---
 
-## How AI Agents Should Execute Uploads
+## 📍 Binary Path
+- Absolute Path: `/home/gemari-pc/Documents/Sodikin/Agent/siapdigital/youtube-autoposter/youtube-autoposter`
+- Relative Path: `./youtube-autoposter/youtube-autoposter`
 
-Run the binary non-interactively via `run_command` tool using flags and `-json` output format:
+---
+
+## 🛠️ AI Agent Inspection Commands (All return JSON)
+
+### 1. List Saved Account Profiles
+Scan for all saved account tokens (`token.json`, `token_*.json`):
+```bash
+./youtube-autoposter -list-profiles
+```
+**JSON Output:**
+```json
+[
+  { "name": "Default Account", "token_file": "token.json" },
+  { "name": "Akun Dua", "token_file": "token_akun_dua.json" }
+]
+```
+
+### 2. List Connected YouTube Channels for Account
+Get channel details (Title, ID, Subscriber count, Video count) for an account:
+```bash
+./youtube-autoposter -profile "akun_dua" -list-channels
+```
+**JSON Output:**
+```json
+[
+  {
+    "id": "UCw83mhlRxJw_U82G_Hmo-mg",
+    "title": "Siap Digital",
+    "subscriber_count": 0,
+    "video_count": 3
+  }
+]
+```
+
+### 3. Scan Local Directory for Video Files
+Recursively scan directory for video files (`.mp4`, `.mkv`, `.mov`, etc.):
+```bash
+./youtube-autoposter -list-videos
+```
+**JSON Output:**
+```json
+[
+  {
+    "path": "/home/.../video.mp4",
+    "rel_path": "./video.mp4",
+    "size_bytes": 26633830,
+    "size_formatted": "25.40 MB"
+  }
+]
+```
+
+---
+
+## 🚀 AI Agent Video Upload Command
+
+Run non-interactively with `-json` flag:
 
 ```bash
-/home/gemari-pc/Documents/Sodikin/Agent/siapdigital/youtube-autoposter/youtube-autoposter \
-  -file "/path/to/video.mp4" \
-  -thumbnail "/path/to/thumbnail.jpg" \
-  -title "Video Title" \
-  -description "Detailed description" \
-  -tags "golang,ai,tutorial" \
+./youtube-autoposter \
+  -profile "akun_dua" \
+  -file "./video.mp4" \
+  -thumbnail "./cover.png" \
+  -title "Automated Upload Title" \
+  -description "Uploaded by AI Agent" \
+  -tags "ai,golang,tutorial" \
   -privacy "private" \
   -json
 ```
 
-### JSON Output Format
-When `-json` flag is provided, the binary outputs structured JSON:
-
-**Success Response:**
+**JSON Output:**
 ```json
 {
   "id": "dQw4w9WgXcQ",
   "watch_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "duration": "12s",
+  "duration": "15s",
   "has_custom_thumb": true
 }
 ```
-
-**Error Response:**
-```json
-{
-  "status": "error",
-  "message": "file video tidak ditemukan"
-}
-```
-
----
-
-## Command Flags Reference for AI
-
-- `-file` (string, required): Absolute path to video file (`.mp4`, `.mkv`, `.mov`).
-- `-thumbnail` (string, optional): Absolute path to thumbnail image (`.png`, `.jpg`, `.webp`).
-- `-title` (string, optional): Video title (defaults to filename).
-- `-description` (string, optional): Video description.
-- `-tags` (string, optional): Comma-separated list of tags.
-- `-privacy` (string, optional): `private` (default), `public`, or `unlisted`.
-- `-publish-at` (string, optional): RFC3339 timestamp for scheduled publishing (e.g. `2026-08-01T15:00:00Z`).
-- `-json` (boolean, optional): Return clean JSON result for agent parsing.

@@ -7,8 +7,8 @@ import (
 )
 
 type AccountProfile struct {
-	Name      string
-	TokenFile string
+	Name      string `json:"name"`
+	TokenFile string `json:"token_file"`
 }
 
 // ListProfiles scans current directory for token files (token.json, token_*.json)

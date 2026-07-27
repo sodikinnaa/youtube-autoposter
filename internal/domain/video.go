@@ -35,6 +35,14 @@ type ChannelInfo struct {
 	VideoCount      uint64 `json:"video_count"`
 }
 
+// ScannedVideo represents a video file discovered by the scanner
+type ScannedVideo struct {
+	Path          string `json:"path"`
+	RelPath       string `json:"rel_path"`
+	SizeBytes     int64  `json:"size_bytes"`
+	SizeFormatted string `json:"size_formatted"`
+}
+
 // UploadResult represents the result of a successful upload
 type UploadResult struct {
 	ID             string        `json:"id"`

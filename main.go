@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"youtube-autoposter/internal/cli"
+	"youtube-autoposter/internal/domain"
 	"youtube-autoposter/internal/infrastructure/oauth"
 	"youtube-autoposter/internal/usecase"
 )
@@ -25,18 +26,72 @@ func main() {
 		publishAt     = flag.String("publish-at", "", "Jadwal tayang otomatis (format RFC3339, contoh: 2026-08-01T15:00:00Z)")
 		secretFile    = flag.String("secret", "client_secret.json", "Path ke file OAuth client_secret.json")
 		tokenFile     = flag.String("token", "token.json", "Path ke simpanan token.json")
+		profileName   = flag.String("profile", "", "Pilih nama profile akun (contoh: 'akun_dua' -> token_akun_dua.json)")
 		interactive   = flag.Bool("i", false, "Jalankan dalam mode interaktif (User POV)")
-		jsonOutput    = flag.Bool("json", false, "Output hasil upload dalam format JSON (Machine / AI Agent POV)")
+		jsonOutput    = flag.Bool("json", false, "Output hasil dalam format JSON (Machine / AI Agent POV)")
+
+		// AI Agent Inspection Flags
+		listProfiles = flag.Bool("list-profiles", false, "AI Agent: Tampilkan daftar profile token akun dalam JSON")
+		listChannels = flag.Bool("list-channels", false, "AI Agent: Tampilkan daftar channel YouTube pada token dalam JSON")
+		listVideos   = flag.Bool("list-videos", false, "AI Agent: Pindai dan tampilkan daftar file video dalam JSON")
 	)
 
 	flag.Parse()
 
+	// Handle Profile Name flag mapping
+	if *profileName != "" {
+		*tokenFile = oauth.GetTokenFileForProfile(*profileName)
+	}
+
+	// 1. AI Agent Inspection Flag: List Profiles
+	if *listProfiles {
+		profiles, err := oauth.ListProfiles()
+		if err != nil {
+			fmt.Printf(`{"status":"error","message":%q}`+"\n", err.Error())
+			os.Exit(1)
+		}
+		json.NewEncoder(os.Stdout).Encode(profiles)
+		return
+	}
+
+	// 2. AI Agent Inspection Flag: List Videos
+	if *listVideos {
+		foundVideos, err := cli.ScanVideoFiles(".")
+		if err != nil {
+			fmt.Printf(`{"status":"error","message":%q}`+"\n", err.Error())
+			os.Exit(1)
+		}
+		var scanned []domain.ScannedVideo
+		for _, v := range foundVideos {
+			scanned = append(scanned, domain.ScannedVideo{
+				Path:          v.Path,
+				RelPath:       v.RelPath,
+				SizeBytes:     v.SizeBytes,
+				SizeFormatted: cli.FormatFileSize(v.SizeBytes),
+			})
+		}
+		json.NewEncoder(os.Stdout).Encode(scanned)
+		return
+	}
+
 	// Dependency Injection Setup (Clean Architecture)
 	oauthProvider := oauth.NewGoogleOAuthProvider()
-	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
 	getChannelInfoUseCase := usecase.NewGetChannelInfoUseCase(oauthProvider)
+	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
 
 	ctx := context.Background()
+
+	// 3. AI Agent Inspection Flag: List Channels
+	if *listChannels {
+		channels, err := getChannelInfoUseCase.ExecuteList(ctx, *secretFile, *tokenFile)
+		if err != nil {
+			fmt.Printf(`{"status":"error","message":%q}`+"\n", err.Error())
+			os.Exit(1)
+		}
+		json.NewEncoder(os.Stdout).Encode(channels)
+		return
+	}
+
 	var input usecase.UploadVideoInput
 
 	// Jika flag -file tidak diisi atau flag -i diaktifkan, masuk ke Mode Interaktif (User POV)
@@ -47,7 +102,7 @@ func main() {
 			os.Exit(0)
 		}
 	} else {
-		// Mode Direct Flag (Scripting / Automation POV)
+		// Mode Direct Flag (Scripting / Automation / AI Agent POV)
 		var tags []string
 		if *tagsStr != "" {
 			for _, t := range strings.Split(*tagsStr, ",") {
