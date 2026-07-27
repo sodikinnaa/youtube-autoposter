@@ -116,7 +116,11 @@ func (p *GoogleOAuthProvider) getTokenFromWeb(ctx context.Context, config *oauth
 		defer server.Shutdown(ctx)
 	}
 
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	authURL := config.AuthCodeURL(
+		"state-token",
+		oauth2.AccessTypeOffline,
+		oauth2.SetAuthURLParam("prompt", "select_account consent"),
+	)
 	fmt.Println("\n=======================================================")
 	fmt.Println("🔑 PERLU OTENTIKASI YOUTUBE OAUTH2")
 	fmt.Println("1. Buka URL berikut di browser kamu untuk memberikan izin:")
