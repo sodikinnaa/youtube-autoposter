@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"youtube-autoposter/internal/domain"
 	"youtube-autoposter/internal/infrastructure/oauth"
 	"youtube-autoposter/internal/usecase"
 )
@@ -57,29 +58,57 @@ func RunInteractiveMode(ctx context.Context, secretFile, tokenFile string, getCh
 		}
 	}
 
-	fmt.Println("\n🔍 Memeriksa kredensial OAuth & Koneksi Channel YouTube...")
+	fmt.Println("\n🔍 Memeriksa kredensial OAuth & Mengambil Daftar Channel YouTube...")
 
-	// 1. VERIFIKASI KREDENSIAL & AKUN CHANNEL YOUTUBE DAHULU
-	channelInfo, err := getChannelInfoUseCase.Execute(ctx, secretFile, tokenFile)
+	// 1. VERIFIKASI KREDENSIAL & LOAD DAFTAR CHANNEL YOUTUBE DARI KREDENSIAL INI
+	channels, err := getChannelInfoUseCase.ExecuteList(ctx, secretFile, tokenFile)
 	if err != nil {
 		fmt.Printf("\n❌ Gagal terhubung ke YouTube API / OAuth Credentials Error:\n%v\n", err)
 		return usecase.UploadVideoInput{}, false
 	}
 
-	fmt.Println("\n=======================================================")
-	fmt.Println("📺 CHANNEL YOUTUBE TERHUBUNG SUKSES")
-	fmt.Println("=======================================================")
-	fmt.Printf("👤 Nama Channel : %s\n", channelInfo.Title)
-	fmt.Printf("🆔 Channel ID   : %s\n", channelInfo.ID)
-	fmt.Printf("👥 Subscribers  : %d\n", channelInfo.SubscriberCount)
-	fmt.Printf("📹 Total Video  : %d\n", channelInfo.VideoCount)
-	fmt.Println("=======================================================")
-	fmt.Print("Lanjutkan upload video ke channel di atas? (Y/n): ")
+	var selectedChannel domain.ChannelInfo
+	if len(channels) == 1 {
+		selectedChannel = channels[0]
+		fmt.Println("\n=======================================================")
+		fmt.Println("📺 CHANNEL YOUTUBE TERHUBUNG SUKSES")
+		fmt.Println("=======================================================")
+		fmt.Printf("👤 Nama Channel : %s\n", selectedChannel.Title)
+		fmt.Printf("🆔 Channel ID   : %s\n", selectedChannel.ID)
+		fmt.Printf("👥 Subscribers  : %d\n", selectedChannel.SubscriberCount)
+		fmt.Printf("📹 Total Video  : %d\n", selectedChannel.VideoCount)
+		fmt.Println("=======================================================")
+		fmt.Print("Lanjutkan upload video ke channel di atas? (Y/n): ")
 
-	channelConfirm, _ := reader.ReadString('\n')
-	if strings.ToLower(strings.TrimSpace(channelConfirm)) == "n" {
-		fmt.Println("\n🚫 Proses dibatalkan oleh pengguna.")
-		return usecase.UploadVideoInput{}, false
+		channelConfirm, _ := reader.ReadString('\n')
+		if strings.ToLower(strings.TrimSpace(channelConfirm)) == "n" {
+			fmt.Println("\n🚫 Proses dibatalkan oleh pengguna.")
+			return usecase.UploadVideoInput{}, false
+		}
+	} else {
+		fmt.Println("\n=======================================================")
+		fmt.Printf("📺 DITEMUKAN %d CHANNEL YOUTUBE PADA AKUN INI:\n", len(channels))
+		fmt.Println("=======================================================")
+		for i, ch := range channels {
+			fmt.Printf("  [%d] %s (%d Subs | %d Video) - ID: %s\n", i+1, ch.Title, ch.SubscriberCount, ch.VideoCount, ch.ID)
+		}
+		fmt.Printf("Pilih Channel Target Upload (1-%d) [default: 1]: ", len(channels))
+
+		chChoiceStr, _ := reader.ReadString('\n')
+		chChoiceStr = strings.TrimSpace(chChoiceStr)
+
+		var chIdx int
+		if chChoiceStr == "" {
+			chIdx = 1
+		} else {
+			fmt.Sscanf(chChoiceStr, "%d", &chIdx)
+		}
+
+		if chIdx < 1 || chIdx > len(channels) {
+			chIdx = 1
+		}
+		selectedChannel = channels[chIdx-1]
+		fmt.Printf("\n✅ Channel terpilih: %s (ID: %s)\n", selectedChannel.Title, selectedChannel.ID)
 	}
 
 	fmt.Println("\nSilakan isi detail video yang akan di-upload:")
@@ -177,7 +206,7 @@ func RunInteractiveMode(ctx context.Context, secretFile, tokenFile string, getCh
 	fmt.Println("\n=======================================================")
 	fmt.Println("📋 RINGKASAN KONFIGURASI UPLOAD")
 	fmt.Println("=======================================================")
-	fmt.Printf("📺 Channel Target: %s (%s)\n", channelInfo.Title, channelInfo.ID)
+	fmt.Printf("📺 Channel Target: %s (%s)\n", selectedChannel.Title, selectedChannel.ID)
 	fmt.Printf("🎥 File Video    : %s\n", videoPath)
 	if thumbPath != "" {
 		fmt.Printf("🖼️  Thumbnail     : %s\n", thumbPath)

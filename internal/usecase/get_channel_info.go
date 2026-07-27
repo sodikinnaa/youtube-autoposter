@@ -19,11 +19,19 @@ func NewGetChannelInfoUseCase(oauthProvider *oauth.GoogleOAuthProvider) *GetChan
 }
 
 func (uc *GetChannelInfoUseCase) Execute(ctx context.Context, secretFile, tokenFile string) (*domain.ChannelInfo, error) {
+	list, err := uc.ExecuteList(ctx, secretFile, tokenFile)
+	if err != nil {
+		return nil, err
+	}
+	return &list[0], nil
+}
+
+func (uc *GetChannelInfoUseCase) ExecuteList(ctx context.Context, secretFile, tokenFile string) ([]domain.ChannelInfo, error) {
 	httpClient, err := uc.oauthProvider.GetHTTPClient(ctx, secretFile, tokenFile)
 	if err != nil {
 		return nil, err
 	}
 
 	ytClient := youtube.NewClient(httpClient)
-	return ytClient.GetChannelInfo(ctx)
+	return ytClient.GetChannelsList(ctx)
 }

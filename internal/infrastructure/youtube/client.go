@@ -24,7 +24,7 @@ func NewClient(httpClient *http.Client) *Client {
 	}
 }
 
-func (c *Client) GetChannelInfo(ctx context.Context) (*domain.ChannelInfo, error) {
+func (c *Client) GetChannelsList(ctx context.Context) ([]domain.ChannelInfo, error) {
 	service, err := yt.NewService(ctx, option.WithHTTPClient(c.httpClient))
 	if err != nil {
 		return nil, fmt.Errorf("gagal inisialisasi YouTube API client: %w", err)
@@ -40,13 +40,33 @@ func (c *Client) GetChannelInfo(ctx context.Context) (*domain.ChannelInfo, error
 		return nil, fmt.Errorf("tidak ditemukan channel YouTube yang terhubung dengan akun ini")
 	}
 
-	ch := resp.Items[0]
-	return &domain.ChannelInfo{
-		ID:              ch.Id,
-		Title:           ch.Snippet.Title,
-		SubscriberCount: ch.Statistics.SubscriberCount,
-		VideoCount:      ch.Statistics.VideoCount,
-	}, nil
+	var channels []domain.ChannelInfo
+	for _, ch := range resp.Items {
+		var subsCount, videoCount uint64
+		if ch.Statistics != nil {
+			subsCount = ch.Statistics.SubscriberCount
+			videoCount = ch.Statistics.VideoCount
+		}
+		title := "Channel Tanpa Nama"
+		if ch.Snippet != nil {
+			title = ch.Snippet.Title
+		}
+		channels = append(channels, domain.ChannelInfo{
+			ID:              ch.Id,
+			Title:           title,
+			SubscriberCount: subsCount,
+			VideoCount:      videoCount,
+		})
+	}
+	return channels, nil
+}
+
+func (c *Client) GetChannelInfo(ctx context.Context) (*domain.ChannelInfo, error) {
+	list, err := c.GetChannelsList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &list[0], nil
 }
 
 func (c *Client) UploadVideo(ctx context.Context, video domain.Video) (*domain.UploadResult, error) {
