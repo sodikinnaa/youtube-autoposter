@@ -113,21 +113,52 @@ func RunInteractiveMode(ctx context.Context, secretFile, tokenFile string, getCh
 
 	fmt.Println("\nSilakan isi detail video yang akan di-upload:")
 
-	// 2. PATH FILE VIDEO
+	// 2. DETEKSI OTOMATIS & PILIH FILE VIDEO
+	foundVideos, _ := ScanVideoFiles(".")
 	var videoPath string
-	for {
-		fmt.Print("\n🎥 Path File Video (contoh: ./my_video.mp4): ")
-		input, _ := reader.ReadString('\n')
-		videoPath = strings.TrimSpace(input)
-		if videoPath == "" {
-			fmt.Println("❌ Path file video tidak boleh kosong!")
-			continue
+
+	if len(foundVideos) > 0 {
+		fmt.Println("\n=======================================================")
+		fmt.Printf("🎥 DETEKSI OTOMATIS: DITEMUKAN %d FILE VIDEO:\n", len(foundVideos))
+		fmt.Println("=======================================================")
+		for i, v := range foundVideos {
+			fmt.Printf("  [%d] %s (%s)\n", i+1, v.RelPath, FormatFileSize(v.SizeBytes))
 		}
-		if _, err := os.Stat(videoPath); os.IsNotExist(err) {
-			fmt.Printf("❌ File '%s' tidak ditemukan! Silakan masukkan path yang benar.\n", videoPath)
-			continue
+		manualIdx := len(foundVideos) + 1
+		fmt.Printf("  [%d] 📂 Ketik/Tulis Path File Video Manual\n", manualIdx)
+		fmt.Printf("Pilih File Video (1-%d) [default: 1]: ", manualIdx)
+
+		vChoiceStr, _ := reader.ReadString('\n')
+		vChoiceStr = strings.TrimSpace(vChoiceStr)
+
+		var vIdx int
+		if vChoiceStr == "" {
+			vIdx = 1
+		} else {
+			fmt.Sscanf(vChoiceStr, "%d", &vIdx)
 		}
-		break
+
+		if vIdx >= 1 && vIdx <= len(foundVideos) {
+			videoPath = foundVideos[vIdx-1].RelPath
+			fmt.Printf("✅ File video terpilih: %s\n", videoPath)
+		}
+	}
+
+	if videoPath == "" {
+		for {
+			fmt.Print("\n🎥 Masukkan Path File Video (contoh: ./my_video.mp4): ")
+			input, _ := reader.ReadString('\n')
+			videoPath = strings.TrimSpace(input)
+			if videoPath == "" {
+				fmt.Println("❌ Path file video tidak boleh kosong!")
+				continue
+			}
+			if _, err := os.Stat(videoPath); os.IsNotExist(err) {
+				fmt.Printf("❌ File '%s' tidak ditemukan! Silakan masukkan path yang benar.\n", videoPath)
+				continue
+			}
+			break
+		}
 	}
 
 	// 3. PATH THUMBNAIL (OPSIONAL)
