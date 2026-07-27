@@ -21,7 +21,15 @@ func NewGoogleOAuthProvider() *GoogleOAuthProvider {
 func (p *GoogleOAuthProvider) GetHTTPClient(ctx context.Context, secretFile, tokenFile string) (*http.Client, error) {
 	b, err := os.ReadFile(secretFile)
 	if err != nil {
-		return nil, fmt.Errorf("gagal membaca client_secret file (%s): %w. Pastikan file credentials dari Google Cloud Console sudah ada", secretFile, err)
+		fmt.Printf("⚠️ File credentials '%s' tidak ditemukan. Membuka wizard penyiapan...\n", secretFile)
+		if wizErr := RunCredentialsWizard(secretFile); wizErr != nil {
+			return nil, fmt.Errorf("wizard setup credentials gagal: %w", wizErr)
+		}
+		// Retry membaca file setelah wizard selesai
+		b, err = os.ReadFile(secretFile)
+		if err != nil {
+			return nil, fmt.Errorf("gagal membaca client_secret file (%s) setelah wizard: %w", secretFile, err)
+		}
 	}
 
 	config, err := google.ConfigFromJSON(b, youtube.YoutubeUploadScope, youtube.YoutubeReadonlyScope)
