@@ -24,6 +24,31 @@ func NewClient(httpClient *http.Client) *Client {
 	}
 }
 
+func (c *Client) GetChannelInfo(ctx context.Context) (*domain.ChannelInfo, error) {
+	service, err := yt.NewService(ctx, option.WithHTTPClient(c.httpClient))
+	if err != nil {
+		return nil, fmt.Errorf("gagal inisialisasi YouTube API client: %w", err)
+	}
+
+	call := service.Channels.List([]string{"snippet", "statistics"}).Mine(true)
+	resp, err := call.Do()
+	if err != nil {
+		return nil, fmt.Errorf("gagal mengambil data channel YouTube: %w", err)
+	}
+
+	if len(resp.Items) == 0 {
+		return nil, fmt.Errorf("tidak ditemukan channel YouTube yang terhubung dengan akun ini")
+	}
+
+	ch := resp.Items[0]
+	return &domain.ChannelInfo{
+		ID:              ch.Id,
+		Title:           ch.Snippet.Title,
+		SubscriberCount: ch.Statistics.SubscriberCount,
+		VideoCount:      ch.Statistics.VideoCount,
+	}, nil
+}
+
 func (c *Client) UploadVideo(ctx context.Context, video domain.Video) (*domain.UploadResult, error) {
 	file, err := os.Open(video.FilePath)
 	if err != nil {

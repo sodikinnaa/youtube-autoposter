@@ -27,11 +27,19 @@ type Video struct {
 	PublishAt     *time.Time
 }
 
+// ChannelInfo represents connected YouTube channel details
+type ChannelInfo struct {
+	ID              string
+	Title           string
+	SubscriberCount uint64
+	VideoCount      uint64
+}
+
 // UploadResult represents the result of a successful upload
 type UploadResult struct {
-	ID        string
-	WatchURL  string
-	Duration  time.Duration
+	ID             string
+	WatchURL       string
+	Duration       time.Duration
 	HasCustomThumb bool
 }
 

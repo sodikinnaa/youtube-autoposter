@@ -32,13 +32,15 @@ func main() {
 	// Dependency Injection Setup (Clean Architecture)
 	oauthProvider := oauth.NewGoogleOAuthProvider()
 	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
+	getChannelInfoUseCase := usecase.NewGetChannelInfoUseCase(oauthProvider)
 
+	ctx := context.Background()
 	var input usecase.UploadVideoInput
 
 	// Jika flag -file tidak diisi atau flag -i diaktifkan, masuk ke Mode Interaktif (User POV)
 	if *videoPath == "" || *interactive {
 		var ok bool
-		input, ok = cli.RunInteractiveMode()
+		input, ok = cli.RunInteractiveMode(ctx, *secretFile, *tokenFile, getChannelInfoUseCase)
 		if !ok {
 			os.Exit(0)
 		}
@@ -68,7 +70,6 @@ func main() {
 		}
 	}
 
-	ctx := context.Background()
 	result, err := uploadUseCase.Execute(ctx, input)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "\n❌ Error: %v\n", err)
