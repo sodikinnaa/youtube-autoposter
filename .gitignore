@@ -1,0 +1,18 @@
+# Ignore OAuth credentials and tokens
+client_secret.json
+token.json
+*.json.secret
+
+# Ignore binaries
+youtube-autoposter
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Ignore uploads directory if temporary
+videos/
+*.mp4
+*.mkv
+*.mov
