@@ -115,14 +115,15 @@ func copySecretFromFile(reader *bufio.Reader, targetPath string) error {
 
 func printGCPGuide() {
 	fmt.Println("\n=======================================================")
-	fmt.Println("📖 PANDUAN SINGKAT MEMBUAT OAUTH CLIENT ID")
+	fmt.Println("📖 PANDUAN GOOGLE AUTH PLATFORM (TAMPILAN TERBARU)")
 	fmt.Println("=======================================================")
 	fmt.Println("1. Buka Google Cloud Console: https://console.cloud.google.com/")
-	fmt.Println("2. Buat Project baru dan aktifkan API 'YouTube Data API v3'.")
-	fmt.Println("3. Pada 'OAuth consent screen', pilih External dan tambahkan email kamu ke Test users.")
-	fmt.Println("4. Pada 'Credentials' > 'Create Credentials' > 'OAuth client ID':")
-	fmt.Println("   - Application type: Desktop App")
-	fmt.Println("5. Salin Client ID & Client Secret atau Download JSON file-nya.")
-	fmt.Println("6. Jalankan kembali ./youtube-autoposter untuk melanjutkan wizard.")
+	fmt.Println("2. Aktifkan API 'YouTube Data API v3' di menu API & Services > Library.")
+	fmt.Println("3. Masuk ke menu 'Google Auth Platform':")
+	fmt.Println("   a. Klik 'Branding' / 'Audience' (Configure App): Pilih External, isi Nama App & Email kamu.")
+	fmt.Println("   b. Di menu 'Audience' > 'Test Users': Klik '+ Add Users', masukkan email Google/YouTube kamu.")
+	fmt.Println("   c. Di menu 'Clients' (Credentials): Klik '+ Create Client', pilih Application Type: 'Desktop app'.")
+	fmt.Println("4. Salin 'Client ID' dan 'Client Secret' yang muncul di layar, atau Download JSON-nya.")
+	fmt.Println("5. Jalankan kembali ./youtube-autoposter untuk memasukkan Client ID & Secret tersebut.")
 	fmt.Println("=======================================================")
 }
