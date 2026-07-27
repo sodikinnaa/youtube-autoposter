@@ -1,6 +1,6 @@
 # 🎬 YouTube Auto-Poster CLI (Golang - Clean Architecture)
 
-A lightweight, high-performance YouTube Auto-Poster CLI written in Golang built with **Clean Architecture**, supporting video uploads, custom thumbnails, scheduled publishing, OAuth2 auto-tokens, and an **Interactive Setup Wizard**.
+A lightweight, high-performance YouTube Auto-Poster CLI written in Golang built with **Clean Architecture**. Supports **Interactive User-Friendly CLI (POV User)**, video uploads, custom thumbnails, scheduled publishing, OAuth2 auto-tokens, and an **Interactive Credentials Wizard**.
 
 ---
 
@@ -9,12 +9,14 @@ A lightweight, high-performance YouTube Auto-Poster CLI written in Golang built 
 ```text
 youtube-autoposter/
 ├── internal/
+│   ├── cli/                  # 🖥️ Interactive User POV CLI Interface
+│   │   └── interactive.go
 │   ├── domain/               # Core Domain Entities, Models, & Interfaces
 │   │   └── video.go
 │   ├── infrastructure/       # External Implementations (OAuth & YouTube API)
 │   │   ├── oauth/
 │   │   │   ├── authenticator.go
-│   │   │   └── wizard.go     # Interactive CLI Setup Wizard
+│   │   │   └── wizard.go     # Interactive Credentials Wizard
 │   │   └── youtube/
 │   │       └── client.go     # YouTube Data API v3 Client & Thumbnail Engine
 │   └── usecase/              # Application Business Logic
@@ -28,107 +30,78 @@ youtube-autoposter/
 
 ---
 
-## 📖 PANDUAN LENGKAP PENGGUNAAN BINARY
+## 📖 PANDUAN PENGGUNAAN BINARY
 
-### 1. Build Binary (Satu Kali)
-
-Buka terminal di folder `youtube-autoposter`, lalu jalankan:
+### 1. Build Binary
 
 ```bash
+cd youtube-autoposter
 go build -o youtube-autoposter .
 ```
 
-*File binary `./youtube-autoposter` akan dibuat.*
-
 ---
 
-### 2. Jalankan Binary (Interactive Setup Wizard)
+### 2. Cara Menggunakan: Mode Interaktif (User POV) ⭐ Recommended
 
-Jika kamu pertama kali menjalankan binary dan **belum** memiliki file `client_secret.json`, jalankan:
+Cukup jalankan binary tanpa argumen/flag (atau dengan flag `-i`):
 
 ```bash
-./youtube-autoposter -file ./sample.mp4
+./youtube-autoposter
 ```
 
-Aplikasi akan otomatis mendeteksi file credentials belum ada dan membuka **Wizard Interaktif**:
+Kamu akan dipandu dengan wizard terminal interaktif yang sangat ramah pengguna:
 
 ```text
-⚠️ File credentials 'client_secret.json' tidak ditemukan. Membuka wizard penyiapan...
+=======================================================
+🎬 YOUTUBE AUTO-POSTER - INTERACTIVE WIZARD
+=======================================================
+Silakan isi detail video di bawah ini (atau tekan Enter untuk default):
+
+🎥 Path File Video (contoh: ./my_video.mp4): ./video_tutorial.mp4
+
+🖼️  Path Custom Thumbnail (opsional, contoh: ./thumb.jpg, tekan Enter jika tidak ada): ./cover.png
+
+📝 Judul Video [default: video_tutorial]: Tutorial Golang Clean Architecture
+
+📄 Deskripsi Video (opsional, tekan Enter jika kosong): Video panduan YouTube Auto-Poster CLI.
+
+🏷️  Tags Video (pisahkan dengan koma, contoh: coding,golang,tutorial): golang,clean-architecture,cli
+
+🔒 Status Privasi Video:
+   [1] Private  (Hanya kamu yang bisa lihat - Default)
+   [2] Public   (Bisa ditonton siapa saja)
+   [3] Unlisted (Hanya yang punya link yang bisa lihat)
+Pilihan Status (1/2/3) [default: 1]: 1
+
+⏱️  Jadwalkan Tayang Otomatis? (y/N): n
 
 =======================================================
-🧙 WIZARD SETUP GOOGLE OAUTH CREDENTIALS
+📋 RINGKASAN KONFIGURASI UPLOAD
 =======================================================
-File 'client_secret.json' belum ditemukan.
-
-Pilih cara penyiapan credentials:
-  [1] Input Client ID & Client Secret secara manual
-  [2] Masukkan path file JSON credentials yang sudah didownload
-  [3] Lihat Panduan Google Cloud Console & Keluar
-
-Pilihan Kamu (1/2/3): 1
-
--------------------------------------------------------
-📝 Masukkan Client ID & Client Secret
-(Dapatkan dari Google Cloud Console > Credentials > OAuth 2.0 Client ID)
--------------------------------------------------------
-Client ID     : 123456789-abc.apps.googleusercontent.com
-Client Secret : GOCS-xxxxxx
-
-✅ Berhasil membuat file credentials di 'client_secret.json'!
+🎥 File Video : ./video_tutorial.mp4
+🖼️  Thumbnail  : ./cover.png
+📝 Judul      : Tutorial Golang Clean Architecture
+📄 Deskripsi  : Video panduan YouTube Auto-Poster CLI.
+🏷️  Tags       : golang, clean-architecture, cli
+🔒 Privasi    : private
+=======================================================
+Apakah konfigurasi di atas sudah sesuai dan siap upload? (Y/n): y
 ```
 
 ---
 
-### 3. Otentikasi Satu Kali (Browser OAuth Login)
+### 3. Cara Menggunakan: Mode Flag (Automation / Script POV)
 
-Setelah credentials dikonfigurasi, aplikasi akan membuka link otentikasi browser:
+Untuk kebutuhan otomatisasi / cronjob / shell script, kamu bisa tetap mengoperkan flag secara langsung:
 
-```text
-=======================================================
-🔑 PERLU OTENTIKASI YOUTUBE OAUTH2
-Buka URL berikut di browser kamu untuk memberikan izin:
-
-https://accounts.google.com/o/oauth2/auth?...
-
-Sedang menunggu callback otomatis di http://localhost:8080/callback...
-=======================================================
-```
-
-1. Buka link tersebut di browser.
-2. Login akun YouTube milikmu dan beri izin akses upload video.
-3. Halaman browser akan menampilkan *"Otentikasi Berhasil!"*.
-4. Token otentikasi disimpan otomatis ke `token.json`. **Untuk upload berikutnya, kamu tidak perlu login lagi.**
-
----
-
-### 4. Contoh Command Upload Lengkap
-
-#### A. Upload Video + Custom Thumbnail (Private)
 ```bash
 ./youtube-autoposter \
   -file ./video_tutorial.mp4 \
-  -thumbnail ./cover_thumb.png \
+  -thumbnail ./cover.png \
   -title "Tutorial Golang Clean Architecture" \
-  -description "Dalam video ini kita belajar membuat YouTube Auto-Poster." \
-  -tags "golang,tutorial,clean-architecture" \
+  -description "Deskripsi video otomatis" \
+  -tags "golang,tutorial" \
   -privacy private
-```
-
-#### B. Upload Video Langsung Publik
-```bash
-./youtube-autoposter \
-  -file ./my_video.mp4 \
-  -title "Belajar Web Development" \
-  -privacy public
-```
-
-#### C. Scheduled Publish (Jadwal Tayang Otomatis)
-```bash
-./youtube-autoposter \
-  -file ./scheduled_video.mp4 \
-  -thumbnail ./thumb.jpg \
-  -title "Video Tayang Besok Jam 3 Sore" \
-  -publish-at "2026-08-01T15:00:00Z"
 ```
 
 ---
@@ -137,7 +110,8 @@ Sedang menunggu callback otomatis di http://localhost:8080/callback...
 
 | Flag | Deskripsi | Default |
 | --- | --- | --- |
-| `-file` | Path file video yang mau di-upload | *(Wajib)* |
+| `-i` | Aktifkan Mode Interaktif (User POV) | `false` |
+| `-file` | Path file video | *(Wajib jika non-interaktif)* |
 | `-thumbnail` | Path file gambar thumbnail (`.png`, `.jpg`, `.webp`) | `""` |
 | `-title` | Judul video YouTube | Nama file video tanpa ekstensi |
 | `-description` | Deskripsi video | `""` |

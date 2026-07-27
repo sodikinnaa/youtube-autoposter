@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"youtube-autoposter/internal/cli"
 	"youtube-autoposter/internal/infrastructure/oauth"
 	"youtube-autoposter/internal/usecase"
 )
@@ -23,45 +24,48 @@ func main() {
 		publishAt     = flag.String("publish-at", "", "Jadwal tayang otomatis (format RFC3339, contoh: 2026-08-01T15:00:00Z)")
 		secretFile    = flag.String("secret", "client_secret.json", "Path ke file OAuth client_secret.json")
 		tokenFile     = flag.String("token", "token.json", "Path ke simpanan token.json")
+		interactive   = flag.Bool("i", false, "Jalankan dalam mode interaktif (User POV)")
 	)
 
 	flag.Parse()
-
-	if *videoPath == "" {
-		fmt.Println("🎬 YouTube Auto-Poster CLI (Clean Architecture)")
-		fmt.Println("==================================================")
-		fmt.Println("Penggunaan:")
-		fmt.Println("  go run . -file video.mp4 -thumbnail thumb.png -title \"Judul Video\" -privacy private")
-		fmt.Println("\nFlag lengkap:")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-
-	var tags []string
-	if *tagsStr != "" {
-		for _, t := range strings.Split(*tagsStr, ",") {
-			trimmed := strings.TrimSpace(t)
-			if trimmed != "" {
-				tags = append(tags, trimmed)
-			}
-		}
-	}
 
 	// Dependency Injection Setup (Clean Architecture)
 	oauthProvider := oauth.NewGoogleOAuthProvider()
 	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
 
-	input := usecase.UploadVideoInput{
-		FilePath:      *videoPath,
-		ThumbnailPath: *thumbnailPath,
-		Title:         *title,
-		Description:   *description,
-		Tags:          tags,
-		CategoryID:    *categoryID,
-		PrivacyStatus: *privacyStatus,
-		PublishAt:     *publishAt,
-		SecretFile:    *secretFile,
-		TokenFile:     *tokenFile,
+	var input usecase.UploadVideoInput
+
+	// Jika flag -file tidak diisi atau flag -i diaktifkan, masuk ke Mode Interaktif (User POV)
+	if *videoPath == "" || *interactive {
+		var ok bool
+		input, ok = cli.RunInteractiveMode()
+		if !ok {
+			os.Exit(0)
+		}
+	} else {
+		// Mode Direct Flag (Scripting / Automation POV)
+		var tags []string
+		if *tagsStr != "" {
+			for _, t := range strings.Split(*tagsStr, ",") {
+				trimmed := strings.TrimSpace(t)
+				if trimmed != "" {
+					tags = append(tags, trimmed)
+				}
+			}
+		}
+
+		input = usecase.UploadVideoInput{
+			FilePath:      *videoPath,
+			ThumbnailPath: *thumbnailPath,
+			Title:         *title,
+			Description:   *description,
+			Tags:          tags,
+			CategoryID:    *categoryID,
+			PrivacyStatus: *privacyStatus,
+			PublishAt:     *publishAt,
+			SecretFile:    *secretFile,
+			TokenFile:     *tokenFile,
+		}
 	}
 
 	ctx := context.Background()
@@ -72,12 +76,12 @@ func main() {
 	}
 
 	fmt.Println("\n=======================================================")
-	fmt.Println("✅ UPLOAD VIDEO SUKSES TERPROSES!")
+	fmt.Println("🎉 UPLOAD VIDEO BERHASIL DIPROSES!")
 	fmt.Printf("📺 Video ID    : %s\n", result.ID)
-	fmt.Printf("🔗 Watch Link  : %s\n", result.WatchURL)
+	fmt.Printf("🔗 Link Watch  : %s\n", result.WatchURL)
 	fmt.Printf("⏱️  Durasi Upload: %s\n", result.Duration)
 	if result.HasCustomThumb {
-		fmt.Println("🖼️  Thumbnail   : Custom Thumbnail Dipasang")
+		fmt.Println("🖼️  Thumbnail   : Custom Thumbnail Berhasil Dipasang")
 	}
 	fmt.Println("=======================================================")
 }
