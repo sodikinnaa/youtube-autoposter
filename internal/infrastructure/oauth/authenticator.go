@@ -1,11 +1,14 @@
 package oauth
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -89,7 +92,8 @@ func (p *GoogleOAuthProvider) getTokenFromWeb(ctx context.Context, config *oauth
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			// Ignore server closed
+			// Print warning if port binding failed
+			fmt.Printf("⚠️ Catatan server lokal (:8080): %v. Silakan salin & paste URL/kode otentikasi di bawah.\n", err)
 		}
 	}()
 	defer server.Shutdown(ctx)
@@ -97,10 +101,30 @@ func (p *GoogleOAuthProvider) getTokenFromWeb(ctx context.Context, config *oauth
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	fmt.Println("\n=======================================================")
 	fmt.Println("🔑 PERLU OTENTIKASI YOUTUBE OAUTH2")
-	fmt.Println("Buka URL berikut di browser kamu untuk memberikan izin:")
+	fmt.Println("1. Buka URL berikut di browser kamu untuk memberikan izin:")
 	fmt.Printf("\n%s\n\n", authURL)
-	fmt.Println("Sedang menunggu callback otomatis di http://localhost:8080/callback...")
+	fmt.Println("2. Setelah klik Izinkan, browser akan meredirect.")
+	fmt.Println("3. Jika browser menampilkan 404 / gagal redirect, SALIN KODE atau URL LENGKAP dari browser dan PASTE di bawah ini:")
 	fmt.Println("=======================================================")
+
+	// Goroutine untuk membaca input manual dari terminal (Failproof fallback)
+	go func() {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("PASTE KODE / URL BROWSER DI SINI: ")
+		input, err := reader.ReadString('\n')
+		if err == nil {
+			input = strings.TrimSpace(input)
+			if input != "" {
+				code := extractCodeFromInput(input)
+				if code != "" {
+					select {
+					case codeChan <- code:
+					default:
+					}
+				}
+			}
+		}
+	}()
 
 	select {
 	case code := <-codeChan:
@@ -112,6 +136,20 @@ func (p *GoogleOAuthProvider) getTokenFromWeb(ctx context.Context, config *oauth
 	case err := <-errChan:
 		return nil, err
 	}
+}
+
+// extractCodeFromInput extracts OAuth code whether full URL or raw code is pasted
+func extractCodeFromInput(input string) string {
+	if strings.HasPrefix(input, "http://") || strings.HasPrefix(input, "https://") {
+		u, err := url.Parse(input)
+		if err == nil {
+			code := u.Query().Get("code")
+			if code != "" {
+				return code
+			}
+		}
+	}
+	return input
 }
 
 func tokenFromFile(file string) (*oauth2.Token, error) {
