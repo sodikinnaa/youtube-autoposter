@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -88,29 +89,50 @@ func (p *GoogleOAuthProvider) getTokenFromWeb(ctx context.Context, config *oauth
 	mux.HandleFunc("/callback", handler)
 	mux.HandleFunc("/", handler)
 
-	server := &http.Server{Addr: ":8080", Handler: mux}
+	// Coba bind listener di port 8080, 8089, atau 8989 secara fleksibel
+	var listener net.Listener
+	var bindErr error
+	ports := []string{":8080", ":8089", ":8989", ":0"}
 
-	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			// Print warning if port binding failed
-			fmt.Printf("⚠️ Catatan server lokal (:8080): %v. Silakan salin & paste URL/kode otentikasi di bawah.\n", err)
+	for _, port := range ports {
+		l, err := net.Listen("tcp", port)
+		if err == nil {
+			listener = l
+			// Update RedirectURL sesuai port yang berhasil dibind
+			addr := l.Addr().(*net.TCPAddr)
+			config.RedirectURL = fmt.Sprintf("http://localhost:%d/callback", addr.Port)
+			break
 		}
-	}()
-	defer server.Shutdown(ctx)
+		bindErr = err
+	}
+
+	server := &http.Server{Handler: mux}
+	if listener != nil {
+		go func() {
+			if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
+				// Ignore
+			}
+		}()
+		defer server.Shutdown(ctx)
+	}
 
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	fmt.Println("\n=======================================================")
 	fmt.Println("🔑 PERLU OTENTIKASI YOUTUBE OAUTH2")
 	fmt.Println("1. Buka URL berikut di browser kamu untuk memberikan izin:")
 	fmt.Printf("\n%s\n\n", authURL)
-	fmt.Println("2. Setelah klik Izinkan, browser akan meredirect.")
-	fmt.Println("3. Jika browser menampilkan 404 / gagal redirect, SALIN KODE atau URL LENGKAP dari browser dan PASTE di bawah ini:")
+	if listener != nil {
+		fmt.Printf("2. Server callback lokal aktif di: %s\n", config.RedirectURL)
+	} else {
+		fmt.Printf("⚠️ Port lokal sibuk (%v). Gunakan paste manual di bawah ini.\n", bindErr)
+	}
+	fmt.Println("3. Jika browser menampilkan 404 / gagal redirect, SALIN URL LENGKAP dari browser dan PASTE di bawah ini:")
 	fmt.Println("=======================================================")
 
 	// Goroutine untuk membaca input manual dari terminal (Failproof fallback)
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("PASTE KODE / URL BROWSER DI SINI: ")
+		fmt.Print("\n👉 PASTE KODE / URL BROWSER DI SINI: ")
 		input, err := reader.ReadString('\n')
 		if err == nil {
 			input = strings.TrimSpace(input)
