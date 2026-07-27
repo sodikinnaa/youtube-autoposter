@@ -59,22 +59,37 @@ func (p *GoogleOAuthProvider) getTokenFromWeb(ctx context.Context, config *oauth
 	codeChan := make(chan string)
 	errChan := make(chan error)
 
-	server := &http.Server{Addr: ":8080"}
-	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		if code != "" {
-			fmt.Fprintln(w, "<h1>Otentikasi Berhasil!</h1><p>Kamu bisa menutup tab ini dan kembali ke terminal.</p>")
-			codeChan <- code
-		} else {
-			errMsg := r.URL.Query().Get("error")
-			fmt.Fprintf(w, "<h1>Otentikasi Gagal</h1><p>%s</p>", errMsg)
-			errChan <- fmt.Errorf("OAuth error: %s", errMsg)
+			fmt.Fprintln(w, "<div style='text-align:center;font-family:sans-serif;margin-top:50px;'><h1>✅ Otentikasi YouTube Berhasil!</h1><p>Kamu bisa menutup tab browser ini dan kembali ke terminal.</p></div>")
+			select {
+			case codeChan <- code:
+			default:
+			}
+			return
 		}
-	})
+
+		errMsg := r.URL.Query().Get("error")
+		if errMsg != "" {
+			fmt.Fprintf(w, "<div style='text-align:center;font-family:sans-serif;margin-top:50px;'><h1>❌ Otentikasi Gagal</h1><p>%s</p></div>", errMsg)
+			select {
+			case errChan <- fmt.Errorf("OAuth error: %s", errMsg):
+			default:
+			}
+			return
+		}
+	}
+
+	mux.HandleFunc("/callback", handler)
+	mux.HandleFunc("/", handler)
+
+	server := &http.Server{Addr: ":8080", Handler: mux}
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			// Ignore closed server
+			// Ignore server closed
 		}
 	}()
 	defer server.Shutdown(ctx)
