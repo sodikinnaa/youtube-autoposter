@@ -1,7 +1,7 @@
 # Ignore OAuth credentials and tokens
-client_secret.json
-token.json
-*.json.secret
+client_secret*.json
+token*.json
+*.secret
 
 # Ignore binaries
 youtube-autoposter
