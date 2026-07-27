@@ -16,14 +16,26 @@ Aplikasi ini menggunakan alur **3 Langkah Mudah**:
 
 ## 📌 LANGKAH 1: MENJALANKAN BINARY
 
-Buka terminal di folder aplikasi, lalu jalankan binary:
+### ⚡ Opsi Fast Install / Download Binary via `curl`:
+
+#### Linux (AMD64):
+```bash
+curl -sSL https://raw.githubusercontent.com/sodikinnaa/youtube-autoposter/main/install.sh | bash
+```
+
+atau download binary rilis secara langsung:
 
 ```bash
-cd youtube-autoposter
+curl -sSL https://github.com/sodikinnaa/youtube-autoposter/releases/latest/download/youtube-autoposter-linux-amd64 -o youtube-autoposter && chmod +x youtube-autoposter
 ./youtube-autoposter
 ```
 
-> **Tips:** Jika kamu belum mengompilasi binary dari source code, kamu bisa jalankan `go build -o youtube-autoposter .` atau cukup `go run .`.
+#### Build dari Source Code:
+```bash
+cd youtube-autoposter
+go build -o youtube-autoposter .
+./youtube-autoposter
+```
 
 ---
 

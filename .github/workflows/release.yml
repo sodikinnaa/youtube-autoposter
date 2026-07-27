@@ -1,0 +1,69 @@
+name: 🚀 Release YouTube Auto-Poster
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Release Multi-Platform Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build Binaries
+        run: |
+          mkdir -p build
+          
+          # Linux 64-bit
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/youtube-autoposter-linux-amd64 .
+          
+          # macOS 64-bit
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o build/youtube-autoposter-darwin-amd64 .
+          
+          # macOS ARM64 (Apple Silicon M1/M2/M3)
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o build/youtube-autoposter-darwin-arm64 .
+          
+          # Windows 64-bit
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/youtube-autoposter-windows-amd64.exe .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/youtube-autoposter-linux-amd64
+            build/youtube-autoposter-darwin-amd64
+            build/youtube-autoposter-darwin-arm64
+            build/youtube-autoposter-windows-amd64.exe
+          name: "YouTube Auto-Poster ${{ github.ref_name }}"
+          body: |
+            ## 🎬 YouTube Auto-Poster CLI Release (${{ github.ref_name }})
+            
+            Release otomatis via GitHub Actions CI/CD Workflow.
+            
+            ### ⬇️ Cara Install/Download via `curl` (Linux / macOS):
+            
+            ```bash
+            # Download binary Linux AMD64
+            curl -sSL -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/octet-stream" \
+              https://github.com/sodikinnaa/youtube-autoposter/releases/download/${{ github.ref_name }}/youtube-autoposter-linux-amd64 \
+              -o youtube-autoposter && chmod +x youtube-autoposter
+            
+            # Jalankan
+            ./youtube-autoposter
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
