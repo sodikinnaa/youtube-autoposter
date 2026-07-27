@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"youtube-autoposter/internal/infrastructure/oauth"
+	"youtube-autoposter/internal/usecase"
 )
 
 func main() {
@@ -26,20 +28,13 @@ func main() {
 	flag.Parse()
 
 	if *videoPath == "" {
-		fmt.Println("🎬 YouTube Auto-Poster CLI (Golang)")
+		fmt.Println("🎬 YouTube Auto-Poster CLI (Clean Architecture)")
 		fmt.Println("==================================================")
 		fmt.Println("Penggunaan:")
 		fmt.Println("  go run . -file video.mp4 -thumbnail thumb.png -title \"Judul Video\" -privacy private")
 		fmt.Println("\nFlag lengkap:")
 		flag.PrintDefaults()
 		os.Exit(1)
-	}
-
-	if *title == "" {
-		// Gunakan nama file tanpa ekstensi sebagai judul default jika judul kosong
-		baseName := filepath.Base(*videoPath)
-		ext := filepath.Ext(baseName)
-		*title = strings.TrimSuffix(baseName, ext)
 	}
 
 	var tags []string
@@ -52,8 +47,12 @@ func main() {
 		}
 	}
 
-	opts := UploadOptions{
-		VideoPath:     *videoPath,
+	// Dependency Injection Setup (Clean Architecture)
+	oauthProvider := oauth.NewGoogleOAuthProvider()
+	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
+
+	input := usecase.UploadVideoInput{
+		FilePath:      *videoPath,
 		ThumbnailPath: *thumbnailPath,
 		Title:         *title,
 		Description:   *description,
@@ -66,8 +65,19 @@ func main() {
 	}
 
 	ctx := context.Background()
-	if err := UploadVideo(ctx, opts); err != nil {
+	result, err := uploadUseCase.Execute(ctx, input)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "\n❌ Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	fmt.Println("\n=======================================================")
+	fmt.Println("✅ UPLOAD VIDEO SUKSES TERPROSES!")
+	fmt.Printf("📺 Video ID    : %s\n", result.ID)
+	fmt.Printf("🔗 Watch Link  : %s\n", result.WatchURL)
+	fmt.Printf("⏱️  Durasi Upload: %s\n", result.Duration)
+	if result.HasCustomThumb {
+		fmt.Println("🖼️  Thumbnail   : Custom Thumbnail Dipasang")
+	}
+	fmt.Println("=======================================================")
 }
