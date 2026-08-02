@@ -13,6 +13,7 @@ import (
 	"youtube-autoposter/internal/infrastructure/oauth"
 	"youtube-autoposter/internal/mcp"
 	"youtube-autoposter/internal/usecase"
+	"youtube-autoposter/internal/web"
 )
 
 func main() {
@@ -30,6 +31,11 @@ func main() {
 		profileName   = flag.String("profile", "", "Pilih nama profile akun (contoh: 'akun_dua' -> token_akun_dua.json)")
 		interactive   = flag.Bool("i", false, "Jalankan dalam mode interaktif (User POV)")
 		jsonOutput    = flag.Bool("json", false, "Output hasil dalam format JSON (Machine / AI Agent POV)")
+
+		// Web UI Dashboard & REST API Flags
+		webMode    = flag.Bool("web", false, "Jalankan Web UI Dashboard & REST API Server (http://localhost:8080)")
+		serverMode = flag.Bool("server", false, "Alias untuk -web: Jalankan Web UI Dashboard & REST API Server")
+		port       = flag.Int("port", 8080, "Port HTTP untuk Web Server Dashboard (default: 8080)")
 
 		// AI Agent Inspection & MCP Flags
 		mcpMode      = flag.Bool("mcp", false, "Jalankan sebagai Model Context Protocol (MCP) Server via stdio")
@@ -88,6 +94,16 @@ func main() {
 	oauthProvider := oauth.NewGoogleOAuthProvider()
 	getChannelInfoUseCase := usecase.NewGetChannelInfoUseCase(oauthProvider)
 	uploadUseCase := usecase.NewUploadVideoUseCase(oauthProvider)
+
+	// Web UI Dashboard & REST API Server Mode
+	if *webMode || *serverMode {
+		srv := web.NewServer(getChannelInfoUseCase, uploadUseCase, *secretFile, *tokenFile, *port)
+		if err := srv.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Error menjalankan Web Server: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// 3. AI Agent Inspection Flag: List Channels
 	if *listChannels {

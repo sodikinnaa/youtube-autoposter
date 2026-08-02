@@ -49,7 +49,25 @@ Untuk kebutuhan cronjob, shell script, atau otomasi:
 
 ---
 
-### 3. Integrasi MCP Server (Model Context Protocol)
+### 3. Mode Web Studio & REST API Dashboard 🌐
+Untuk menjalankan server Web UI interaktif dan REST API di browser:
+
+```bash
+./youtube-autoposter -web
+# Atau dengan custom port:
+./youtube-autoposter -web -port 9090
+```
+
+Fitur Web UI Dashboard:
+- Dashboard visual modern berbasis Glassmorphism.
+- Upload video via Drag & Drop atau memilih file lokal di server.
+- Preview thumbnail kustom secara langsung.
+- Pilihan profile multi-akun YouTube.
+- REST API endpoint terpadu (`/api/profiles`, `/api/channels`, `/api/videos`, `/api/upload`).
+
+---
+
+### 4. Integrasi MCP Server (Model Context Protocol)
 Aplikasi ini dapat langsung dijadikan **MCP Server** berbasis `stdio` JSON-RPC 2.0 untuk AI Client (seperti Antigravity, Claude Desktop, Cursor, atau VS Code MCP Extension):
 
 ```bash
@@ -70,7 +88,7 @@ Contoh konfigurasi di MCP Client (`mcp.json` / `claude_desktop_config.json`):
 
 ---
 
-### 4. Perintah Khusus AI Agent (`-json`)
+### 5. Perintah Khusus AI Agent (`-json`)
 Untuk AI Agent yang ingin menginspeksi lingkungan atau mendapatkan respon terstruktur:
 
 - **List Profiles**: `./youtube-autoposter -list-profiles`
@@ -85,12 +103,14 @@ Untuk AI Agent yang ingin menginspeksi lingkungan atau mendapatkan respon terstr
 | Flag | Fungsi | Default |
 | --- | --- | --- |
 | `-i` | Buka Mode Interaktif Wizard | `false` |
+| `-web` / `-server` | Jalankan Web UI Dashboard & REST API Server | `false` |
+| `-port` | Port HTTP untuk Web Server Dashboard | `8080` |
 | `-file` | Path file video yang di-upload | *(Wajib jika non-interaktif)* |
 | `-thumbnail` | Path file gambar thumbnail | `""` |
 | `-title` | Judul video | Nama file tanpa ekstensi |
 | `-description` | Deskripsi video | `""` |
 | `-tags` | Tags dipisahkan koma | `""` |
-| `-category` | ID Kategori (22=People & Blogs, 28=Sci&Tech) | `22` |
+| `-category` | ID Kategori (22=People & Blogs, 28=Science & Tech) | `22` |
 | `-privacy` | Privasi (`public`, `private`, `unlisted`) | `private` |
 | `-publish-at` | Waktu tayang otomatis (format RFC3339) | `""` |
 | `-profile` | Alias profile akun yang digunakan | `""` |

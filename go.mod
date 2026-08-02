@@ -1,6 +1,6 @@
 module youtube-autoposter
 
-go 1.26.4
+go 1.26.0
 
 require (
 	cloud.google.com/go/auth v0.20.0 // indirect

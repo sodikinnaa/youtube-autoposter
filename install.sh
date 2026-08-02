@@ -64,6 +64,16 @@ echo "======================================================="
 echo "✅ SUKSES INSTALL / UPDATE YOUTUBE AUTO-POSTER!"
 echo "======================================================="
 echo "📁 Binary Executable : ./$BINARY_NAME"
-echo "🤖 Panduan AI Agent : ./$SKILL_FILE"
+echo "🤖 Panduan AI Agent  : ./$SKILL_FILE"
+echo "🌐 Web UI Dashboard  : ./$BINARY_NAME -web"
 echo "======================================================="
-echo "Jalankan dengan perintah: ./$BINARY_NAME"
+echo "💡 Fitur Port Otomatis: Jika port sibuk, server akan memilih port bebas/acak secara otomatis."
+echo ""
+echo "Jalankan Web Studio: ./$BINARY_NAME -web"
+echo "Jalankan Interactive CLI: ./$BINARY_NAME"
+
+if [[ "$1" == "-run" || "$1" == "--run" || "$1" == "-web" ]]; then
+  echo ""
+  echo "🚀 Menjalankan Web UI Studio secara otomatis..."
+  exec "./$BINARY_NAME" -web
+fi

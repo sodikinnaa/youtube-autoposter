@@ -6,6 +6,7 @@ token*.json
 # Ignore binaries
 youtube-autoposter
 youtube-autoposter-*
+app
 build/
 *.exe
 *.exe~

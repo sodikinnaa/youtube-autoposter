@@ -15,6 +15,17 @@ This skill allows AI agents to inspect, manage, and upload videos to YouTube aut
 
 ---
 
+## 🌐 Web Server & REST API Mode
+Launch interactive Web Studio UI & REST API server (default port 8080):
+```bash
+./youtube-autoposter -web
+# Or custom port:
+./youtube-autoposter -web -port 9090
+```
+Endpoints available: `GET /api/health`, `GET /api/profiles`, `GET /api/channels`, `GET /api/videos`, `POST /api/upload`.
+
+---
+
 ## 🛠️ AI Agent Inspection Commands (All return JSON)
 
 ### 1. List Saved Account Profiles

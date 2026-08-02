@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Auto-Poster Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0d14;
+      --bg-card: rgba(21, 26, 38, 0.75);
+      --bg-card-hover: rgba(30, 37, 54, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: #8b5cf6;
+      --accent-red: #ff0033;
+      --accent-purple: #7c3aed;
+      --accent-purple-glow: rgba(124, 58, 237, 0.35);
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(255, 0, 51, 0.12) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Glassmorphism Utilities */
+    .glass {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    /* App Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(11, 13, 20, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 0 20px var(--accent-purple-glow);
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #d1d5db);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-tag {
+      font-size: 0.75rem;
+      background: rgba(124, 58, 237, 0.2);
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      color: #c4b5fd;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .profile-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+    }
+
+    .profile-selector label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .profile-selector select {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .profile-selector select option {
+      background: #151a26;
+      color: #fff;
+    }
+
+    .channel-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-size: 0.85rem;
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .channel-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+    }
+
+    .nav-tab {
+      flex: 1;
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(135deg, var(--accent-purple), #5b21b6);
+      color: #ffffff;
+      box-shadow: 0 4px 15px var(--accent-purple-glow);
+    }
+
+    /* Tab Contents */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Layout */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+      .header-actions { width: 100%; justify-content: space-between; }
+    }
+
+    .card {
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #ffffff;
+    }
+
+    /* Dropzone */
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent-purple);
+      background: rgba(124, 58, 237, 0.08);
+    }
+
+    .dropzone-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      color: #a78bfa;
+    }
+
+    .dropzone-text {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .dropzone-sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    /* Input Controls */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px var(--accent-purple-glow);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Privacy Radio Pills */
+    .privacy-options {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .privacy-option {
+      flex: 1;
+      position: relative;
+    }
+
+    .privacy-option input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .privacy-card {
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.2);
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .privacy-option input:checked + .privacy-card {
+      border-color: var(--accent-purple);
+      background: rgba(124, 58, 237, 0.2);
+      color: #ffffff;
+    }
+
+    /* Tags Input Chips */
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0.5rem;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      min-height: 48px;
+    }
+
+    .tag-chip {
+      background: rgba(124, 58, 237, 0.3);
+      border: 1px solid rgba(124, 58, 237, 0.5);
+      color: #ddd6fe;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .tag-chip span {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .tags-input {
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      outline: none;
+      font-family: inherit;
+      font-size: 0.9rem;
+      flex: 1;
+      min-width: 120px;
+      padding: 4px;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 20px rgba(255, 0, 51, 0.3);
+      margin-top: 1rem;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(255, 0, 51, 0.45);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Result Box */
+    .result-card {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: none;
+    }
+
+    .result-card.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .result-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: #a7f3d0;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-copy {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    /* Code Snippet Box */
+    .code-box {
+      background: #090c10;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #e6edf3;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .snippet-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .snippet-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .snippet-btn.active {
+      background: var(--accent-purple);
+      color: #fff;
+      border-color: var(--accent-purple);
+    }
+
+    /* Video List Table */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .video-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .video-card:hover {
+      border-color: var(--accent-purple);
+      transform: translateY(-2px);
+    }
+
+    .video-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.4rem;
+      word-break: break-all;
+    }
+
+    .video-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .btn-select-video {
+      background: rgba(124, 58, 237, 0.2);
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      color: #c4b5fd;
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .btn-select-video:hover {
+      background: var(--accent-purple);
+      color: #fff;
+    }
+
+    /* Wizard Stepper & Onboarding Styles */
+    .wizard-steps {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .wizard-step-card {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      position: relative;
+      transition: var(--transition);
+    }
+    .wizard-step-card.active {
+      border-color: var(--accent-purple);
+      background: rgba(124, 58, 237, 0.08);
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+    }
+    .wizard-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-muted);
+    }
+    .wizard-step-card.active .wizard-step-num {
+      background: var(--accent-purple);
+      color: #fff;
+    }
+    .wizard-step-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+    .wizard-step-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .status-badge.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+    .status-badge.warning {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+    .alert-banner {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(255, 0, 51, 0.15));
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .alert-banner-text {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🎬</div>
+      <div>
+        <div class="brand-title">YouTube Auto-Poster</div>
+      </div>
+      <span class="brand-tag">v1.1 Studio</span>
+    </div>
+
+    <div class="header-actions">
+      <div class="profile-selector">
+        <label for="profileSelect">Profile:</label>
+        <select id="profileSelect" onchange="loadChannelInfo()">
+          <option value="">Default (token.json)</option>
+        </select>
+      </div>
+
+      <div class="channel-badge" id="channelInfo">
+        <span class="dot"></span>
+        <span id="channelName">Memuat channel...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <div class="container">
+    <!-- Onboarding Alert Banner (Hidden by default, shown if setup needed) -->
+    <div id="onboardingBanner" class="alert-banner" style="display: none;">
+      <div class="alert-banner-text">
+        <span style="font-size: 1.4rem;">🧙</span>
+        <div>
+          <strong>Koneksi Channel YouTube Belum Disiapkan!</strong>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Gunakan Onboarding Wizard untuk memasukkan credentials & hubungkan akun YouTube kamu.</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="switchTab('wizard')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Buka Wizard Setup</button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('upload')">🚀 Upload Video</button>
+      <button class="nav-tab" onclick="switchTab('wizard')">🧙 Connect Wizard</button>
+      <button class="nav-tab" onclick="switchTab('scanner')">📁 Scanner Video</button>
+      <button class="nav-tab" onclick="switchTab('profiles')">🔑 Multi-Profile</button>
+      <button class="nav-tab" onclick="switchTab('api')">⚡ REST API Integration</button>
+    </nav>
+
+    <!-- TAB WIZARD: ONBOARDING SETUP -->
+    <div id="tab-wizard" class="tab-content">
+      <div class="card glass" style="margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+          <div>
+            <h2 style="font-weight: 800; font-size: 1.4rem;">🧙 Onboarding Wizard: YouTube OAuth & Channel Setup</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Ikuti 3 langkah mudah berikut untuk menghubungkan akun & channel YouTube kamu ke sistem Auto-Poster.</p>
+          </div>
+          <div id="wizardStatusBadge" class="status-badge warning">⚠️ Credentials Belum Dikonfigurasi</div>
+        </div>
+
+        <!-- Wizard Stepper Indicator -->
+        <div class="wizard-steps">
+          <div class="wizard-step-card active" id="stepCard1">
+            <div class="wizard-step-num">1</div>
+            <div class="wizard-step-title">Google Credentials</div>
+            <div class="wizard-step-desc">Input Client ID & Secret</div>
+          </div>
+          <div class="wizard-step-card" id="stepCard2">
+            <div class="wizard-step-num">2</div>
+            <div class="wizard-step-title">Otorisasi Google</div>
+            <div class="wizard-step-desc">Buka Link Login OAuth</div>
+          </div>
+          <div class="wizard-step-card" id="stepCard3">
+            <div class="wizard-step-num">3</div>
+            <div class="wizard-step-title">Koneksi Channel</div>
+            <div class="wizard-step-desc">Simpan Token & Hubungkan</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Step 1 Form: Credentials -->
+          <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
+            <div class="card-title">📝 Langkah 1: Client ID & Client Secret</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              Dapatkan <code>Client ID</code> & <code>Client Secret</code> dari Google Cloud Console (Desktop App).
+            </p>
+
+            <!-- Redirect URI Info Box -->
+            <div style="background: rgba(124, 58, 237, 0.1); border: 1px dashed rgba(124, 58, 237, 0.4); padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: #c4b5fd; margin-bottom: 0.25rem;">📌 Authorized Redirect URI / Callback:</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.4rem 0.6rem; border-radius: 6px; font-family: monospace; font-size: 0.8rem; color: #38bdf8;">
+                <span id="callbackUriText">http://localhost:8888/callback</span>
+                <button onclick="copyCallbackUri()" style="background: rgba(124, 58, 237, 0.3); border: none; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Copy</button>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem;">
+                *Masukkan URL di atas ke menu <strong>Google Cloud Console > Credentials > OAuth Client > Authorized redirect URIs</strong>.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="wizardClientId">Client ID *</label>
+              <input type="text" id="wizardClientId" class="form-control" placeholder="xxxxxx.apps.googleusercontent.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wizardClientSecret">Client Secret *</label>
+              <input type="password" id="wizardClientSecret" class="form-control" placeholder="GOCSPX-xxxxxx">
+            </div>
+            <div style="font-size: 0.8rem; text-align: center; color: var(--text-dim); margin: 0.5rem 0;">— ATAU PASTE ISI JSON FILE —</div>
+            <div class="form-group">
+              <label class="form-label" for="wizardJsonContent">Raw Client Secret JSON (Opsional)</label>
+              <textarea id="wizardJsonContent" class="form-control" style="height: 80px; font-family: monospace; font-size: 0.75rem;" placeholder='{"installed": {"client_id": "...", "client_secret": "..."}}'></textarea>
+            </div>
+            <button class="btn-primary" onclick="saveWizardSecret()" style="width: 100%;">💾 Simpan Credentials</button>
+          </div>
+
+          <!-- Step 2 & 3 Form: Auth Link & Exchange Code -->
+          <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
+            <div class="card-title">🔑 Langkah 2 & 3: Otorisasi & Hubungkan</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Klik tombol di bawah untuk mendapatkan link login Google, lalu salin Kode Otorisasi yang kamu dapatkan.
+            </p>
+            <div class="form-group">
+              <button class="btn-primary" onclick="getWizardAuthUrl()" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); width: 100%;">🔗 Dapatkan Link Otorisasi Google</button>
+            </div>
+            <div id="authUrlContainer" style="display:none; margin-bottom: 1rem; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-sm);">
+              <div style="font-size: 0.8rem; color: #93c5fd; margin-bottom: 0.5rem;">Buka link otorisasi berikut di tab browser baru:</div>
+              <a id="wizardAuthLink" href="#" target="_blank" style="color: #60a5fa; word-break: break-all; font-size: 0.85rem; font-weight: 600;"></a>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wizardProfileName">Nama Alias Profil Akun (Opsional)</label>
+              <input type="text" id="wizardProfileName" class="form-control" placeholder="default (atau: channel_kedua)">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="wizardAuthCode">Kode Otorisasi (Paste Code / URL Lengkap di sini) *</label>
+              <input type="text" id="wizardAuthCode" class="form-control" placeholder="4/0AeaYSH...">
+            </div>
+            <button class="btn-primary" onclick="exchangeWizardCode()" style="background: linear-gradient(135deg, var(--accent-green), #059669); width: 100%;">⚡ Hubungkan Channel YouTube</button>
+          </div>
+        </div>
+
+        <!-- Connected Channel Result Card -->
+        <div id="wizardChannelResult" style="display:none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md);">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="font-size: 2.5rem;">📺</div>
+            <div>
+              <div style="font-size: 0.8rem; color: #6ee7b7; text-transform: uppercase; font-weight: 700;">CHANNEL TERHUBUNG SUKSES 🎉</div>
+              <h3 id="wChannelTitle" style="font-weight: 800; font-size: 1.25rem;">-</h3>
+              <div id="wChannelMeta" style="font-size: 0.85rem; color: var(--text-muted);">Subscribers: - | Videos: -</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: UPLOAD WIZARD -->
+    <div id="tab-upload" class="tab-content active">
+      <div class="grid-2">
+
+        <!-- Left Column: Source & Thumbnail -->
+        <div class="card glass">
+          <div class="card-title">🎥 Source Video & Thumbnail</div>
+
+          <!-- Upload Type Toggle -->
+          <div class="form-group">
+            <label class="form-label">Mode Upload:</label>
+            <div class="privacy-options">
+              <label class="privacy-option">
+                <input type="radio" name="uploadMode" value="file" checked onchange="toggleUploadMode()">
+                <div class="privacy-card">Browser Direct File</div>
+              </label>
+              <label class="privacy-option">
+                <input type="radio" name="uploadMode" value="path" onchange="toggleUploadMode()">
+                <div class="privacy-card">Server Local Path</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Browser File Input -->
+          <div id="fileUploadContainer" class="form-group">
+            <label class="form-label">Pilih File Video (.mp4, .mkv, .mov):</label>
+            <div class="dropzone" id="videoDropzone" onclick="document.getElementById('videoFile').click()">
+              <div class="dropzone-icon">📤</div>
+              <div class="dropzone-text" id="dropzoneText">Klik atau Drag & Drop Video di Sini</div>
+              <div class="dropzone-sub">Maksimal 2GB via Browser Upload</div>
+            </div>
+            <input type="file" id="videoFile" accept="video/*" style="display:none;" onchange="handleFileSelect(this)">
+          </div>
+
+          <!-- Server Path Input -->
+          <div id="pathUploadContainer" class="form-group" style="display:none;">
+            <label class="form-label" for="filePathInput">Path File Video di Server:</label>
+            <input type="text" id="filePathInput" class="form-control" placeholder="./video.mp4 atau /abs/path/video.mp4">
+          </div>
+
+          <!-- Thumbnail -->
+          <div class="form-group">
+            <label class="form-label">Custom Thumbnail (Opsional):</label>
+            <div class="dropzone" style="padding: 1.5rem;" onclick="document.getElementById('thumbFile').click()">
+              <div class="dropzone-icon" style="font-size:1.8rem;">🖼️</div>
+              <div class="dropzone-text" id="thumbText">Pilih Gambar Thumbnail (.jpg, .png)</div>
+            </div>
+            <input type="file" id="thumbFile" accept="image/*" style="display:none;" onchange="handleThumbSelect(this)">
+          </div>
+
+          <!-- Thumbnail Path (If Server Path Mode) -->
+          <div id="thumbPathContainer" class="form-group" style="display:none;">
+            <label class="form-label">Path Thumbnail Server (Opsional):</label>
+            <input type="text" id="thumbPathInput" class="form-control" placeholder="./thumbnail.jpg">
+          </div>
+        </div>
+
+        <!-- Right Column: Metadata Form -->
+        <div class="card glass">
+          <div class="card-title">📝 Metadata & Schedule</div>
+
+          <form id="uploadForm" onsubmit="submitUpload(event)">
+            <!-- Title -->
+            <div class="form-group">
+              <label class="form-label" for="videoTitle">Judul Video *</label>
+              <input type="text" id="videoTitle" class="form-control" placeholder="Contoh: Tutorial Golang Lanjutan" required>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+              <label class="form-label" for="videoDesc">Deskripsi Video</label>
+              <textarea id="videoDesc" class="form-control" placeholder="Tuliskan deskripsi video lengkap..."></textarea>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label class="form-label">Tags (Tekan Enter atau Koma untuk menambah)</label>
+              <div class="tags-container" id="tagsContainer" onclick="document.getElementById('tagInput').focus()">
+                <input type="text" id="tagInput" class="tags-input" placeholder="+ tambah tag" onkeydown="handleTagInput(event)">
+              </div>
+            </div>
+
+            <!-- Category & Privacy -->
+            <div class="grid-2" style="gap:1rem; margin-bottom: 1.25rem;">
+              <div>
+                <label class="form-label" for="categorySelect">Kategori</label>
+                <select id="categorySelect" class="form-control">
+                  <option value="22">22 - People & Blogs</option>
+                  <option value="28">28 - Science & Tech</option>
+                  <option value="27">27 - Education</option>
+                  <option value="20">20 - Gaming</option>
+                  <option value="10">10 - Music</option>
+                  <option value="24">24 - Entertainment</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="form-label">Status Privasi</label>
+                <select id="privacySelect" class="form-control">
+                  <option value="private">Private (Pribadi)</option>
+                  <option value="unlisted">Unlisted (Tidak Publik)</option>
+                  <option value="public">Public (Publik)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Schedule Publish At -->
+            <div class="form-group">
+              <label class="form-label" for="publishAtInput">Jadwal Tayang Otomatis (Publish-At RFC3339 - Opsional):</label>
+              <input type="datetime-local" id="publishAtInput" class="form-control">
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSubmit">
+              <span id="btnSubmitText">✨ Upload Video ke YouTube</span>
+              <span id="btnSpinner" class="spinner" style="display:none;"></span>
+            </button>
+          </form>
+
+          <!-- Result -->
+          <div class="result-card" id="resultCard">
+            <div style="font-weight:700; color:#34d399; font-size:1.05rem;">🎉 Upload Berhasil!</div>
+            <div id="resultMsg" style="font-size:0.85rem; color:#e5e7eb; margin-top:4px;"></div>
+            <div class="result-url">
+              <span id="watchUrl">https://youtu.be/...</span>
+              <button class="btn-copy" onclick="copyWatchUrl()">Copy Link</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: LOCAL SCANNER -->
+    <div id="tab-scanner" class="tab-content">
+      <div class="card glass">
+        <div class="card-title" style="justify-content: space-between;">
+          <span>📁 Video File Scanner (Folder Project)</span>
+          <button class="btn-select-video" style="padding: 4px 12px;" onclick="loadLocalVideos()">🔄 Refresh Scanner</button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          Pindai otomatis semua file video (`.mp4`, `.mkv`, `.mov`) di folder project server untuk langsung diposting.
+        </p>
+
+        <div class="video-grid" id="scannedVideoGrid">
+          <div style="color:var(--text-muted);">Memindai file video...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PROFILES -->
+    <div id="tab-profiles" class="tab-content">
+      <div class="card glass">
+        <div class="card-title">🔑 Manajemen Profil Akun YouTube</div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          Anda dapat menghubungkan beberapa akun YouTube (multi-channel) dengan membuat profil token terpisah.
+        </p>
+
+        <div class="video-grid" id="profileGrid">
+          <div style="color:var(--text-muted);">Memuat profil...</div>
+        </div>
+
+        <div style="margin-top: 2rem; padding: 1.25rem; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <h4 style="margin-bottom:0.5rem; color:#c4b5fd;">💡 Cara Menambah Profil Akun Baru via CLI:</h4>
+          <code style="font-family:'JetBrains Mono'; font-size:0.85rem; color:#38bdf8;">./youtube-autoposter -profile "akun_dua"</code>
+          <p style="font-size:0.8rem; color:var(--text-dim); margin-top:0.4rem;">
+            Ini akan membuka browser OAuth2 untuk login akun kedua dan menyimpannya di file <code>token_akun_dua.json</code>. Profil akan otomatis muncul di Web UI ini.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: REST API SNIPPETS -->
+    <div id="tab-api" class="tab-content">
+      <div class="card glass">
+        <div class="card-title">⚡ Dokumentasi & Integrasi REST API</div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Gunakan REST API ini untuk mengintegrasikan YouTube Auto-Poster dengan script Python, Node.js, cURL, n8n, Zapier, atau webhook backend Anda!
+        </p>
+
+        <div class="snippet-tabs">
+          <button class="snippet-btn active" onclick="showSnippet('curl')">cURL</button>
+          <button class="snippet-btn" onclick="showSnippet('python')">Python</button>
+          <button class="snippet-btn" onclick="showSnippet('js')">JavaScript (fetch)</button>
+          <button class="snippet-btn" onclick="showSnippet('go')">Go</button>
+        </div>
+
+        <div class="code-box" id="snippetBox"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let tagsList = [];
+    let scannedVideos = [];
+    let currentWatchUrl = "";
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      setCallbackUriText();
+      checkAuthStatus();
+      loadProfiles();
+      loadChannelInfo();
+      loadLocalVideos();
+      updateSnippets();
+    });
+
+    function setCallbackUriText() {
+      const port = window.location.port || '8888';
+      const host = window.location.hostname || 'localhost';
+      const uri = `http://${host}:${port}/callback`;
+      document.getElementById('callbackUriText').innerText = uri;
+    }
+
+    function copyCallbackUri() {
+      const text = document.getElementById('callbackUriText').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('📋 Redirect URI berhasil disalin ke clipboard:\n' + text);
+      }).catch(() => {
+        alert('Redirect URI: ' + text);
+      });
+    }
+
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/auth/status');
+        const json = await res.json();
+        if (json.status === 'success') {
+          const hasSecret = json.data.has_secret;
+          const profiles = json.data.profiles || [];
+          const banner = document.getElementById('onboardingBanner');
+          const badge = document.getElementById('wizardStatusBadge');
+          const step1 = document.getElementById('stepCard1');
+          const step2 = document.getElementById('stepCard2');
+          const step3 = document.getElementById('stepCard3');
+
+          if (!hasSecret) {
+            banner.style.display = 'flex';
+            badge.className = 'status-badge warning';
+            badge.innerText = '⚠️ Credentials Belum Dikonfigurasi';
+            step1.classList.add('active');
+          } else if (profiles.length === 0) {
+            banner.style.display = 'flex';
+            badge.className = 'status-badge warning';
+            badge.innerText = '🔑 Akun YouTube Belum Terhubung';
+            step1.classList.remove('active');
+            step2.classList.add('active');
+          } else {
+            banner.style.display = 'none';
+            badge.className = 'status-badge success';
+            badge.innerText = '✅ Terhubung ke Channel YouTube';
+            step1.classList.remove('active');
+            step2.classList.remove('active');
+            step3.classList.add('active');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check auth status:', err);
+      }
+    }
+
+    async function saveWizardSecret() {
+      const clientId = document.getElementById('wizardClientId').value.trim();
+      const clientSecret = document.getElementById('wizardClientSecret').value.trim();
+      const jsonContent = document.getElementById('wizardJsonContent').value.trim();
+
+      if (!jsonContent && (!clientId || !clientSecret)) {
+        alert('Silakan isi Client ID & Client Secret atau Paste raw JSON content!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/save-secret', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, json_content: jsonContent })
+        });
+        const json = await res.json();
+        if (json.status === 'success') {
+          alert('✅ Client Secret credentials berhasil disimpan!');
+          checkAuthStatus();
+          getWizardAuthUrl();
+        } else {
+          alert('❌ Gagal: ' + json.message);
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    async function getWizardAuthUrl() {
+      try {
+        const res = await fetch('/api/auth/url');
+        const json = await res.json();
+        if (json.status === 'success' && json.data.auth_url) {
+          const container = document.getElementById('authUrlContainer');
+          const link = document.getElementById('wizardAuthLink');
+          link.href = json.data.auth_url;
+          link.innerText = json.data.auth_url;
+          container.style.display = 'block';
+          document.getElementById('stepCard1').classList.remove('active');
+          document.getElementById('stepCard2').classList.add('active');
+        } else {
+          alert('⚠️ Gagal mengambil URL Otorisasi: ' + (json.message || 'Simpan credentials terlebih dahulu.'));
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    async function exchangeWizardCode() {
+      const code = document.getElementById('wizardAuthCode').value.trim();
+      const profile = document.getElementById('wizardProfileName').value.trim();
+
+      if (!code) {
+        alert('Silakan paste Kode Otorisasi atau URL dari browser!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/exchange', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code, profile: profile })
+        });
+        const json = await res.json();
+        if (json.status === 'success') {
+          alert('🎉 Otorisasi & Koneksi Channel YouTube Berhasil!');
+          checkAuthStatus();
+          loadProfiles();
+          loadChannelInfo();
+
+          if (json.data && json.data.length > 0) {
+            const ch = json.data[0];
+            document.getElementById('wChannelTitle').innerText = ch.title;
+            document.getElementById('wChannelMeta').innerText = `Subscribers: ${ch.subscriber_count} | Videos: ${ch.video_count}`;
+            document.getElementById('wizardChannelResult').style.display = 'block';
+            document.getElementById('stepCard2').classList.remove('active');
+            document.getElementById('stepCard3').classList.add('active');
+          }
+        } else {
+          alert('❌ Gagal: ' + json.message);
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    function toggleUploadMode() {
+      const mode = document.querySelector('input[name="uploadMode"]:checked').value;
+      if (mode === 'file') {
+        document.getElementById('fileUploadContainer').style.display = 'block';
+        document.getElementById('pathUploadContainer').style.display = 'none';
+        document.getElementById('thumbPathContainer').style.display = 'none';
+      } else {
+        document.getElementById('fileUploadContainer').style.display = 'none';
+        document.getElementById('pathUploadContainer').style.display = 'block';
+        document.getElementById('thumbPathContainer').style.display = 'block';
+      }
+    }
+
+    function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById('dropzoneText').innerText = `📹 ${file.name} (${(file.size / (1024*1024)).toFixed(1)} MB)`;
+        // Auto fill title if empty
+        const titleInput = document.getElementById('videoTitle');
+        if (!titleInput.value) {
+          titleInput.value = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+        }
+      }
+    }
+
+    function handleThumbSelect(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('thumbText').innerText = `🖼️ ${input.files[0].name}`;
+      }
+    }
+
+    // Drag & Drop support
+    const dropzone = document.getElementById('videoDropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        document.getElementById('videoFile').files = e.dataTransfer.files;
+        handleFileSelect(document.getElementById('videoFile'));
+      }
+    });
+
+    // Tags Management
+    function handleTagInput(e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const val = e.target.value.trim().replace(',', '');
+        if (val && !tagsList.includes(val)) {
+          tagsList.push(val);
+          renderTags();
+        }
+        e.target.value = '';
+      }
+    }
+
+    function removeTag(tag) {
+      tagsList = tagsList.filter(t => t !== tag);
+      renderTags();
+    }
+
+    function renderTags() {
+      const container = document.getElementById('tagsContainer');
+      const input = document.getElementById('tagInput');
+      container.querySelectorAll('.tag-chip').forEach(c => c.remove());
+      
+      tagsList.forEach(t => {
+        const chip = document.createElement('div');
+        chip.className = 'tag-chip';
+        chip.innerHTML = `${t} <span onclick="removeTag('${t}')">&times;</span>`;
+        container.insertBefore(chip, input);
+      });
+    }
+
+    // Load Profiles
+    async function loadProfiles() {
+      try {
+        const res = await fetch('/api/profiles');
+        const json = await res.json();
+        if (json.status === 'success') {
+          const select = document.getElementById('profileSelect');
+          select.innerHTML = '';
+          const profileGrid = document.getElementById('profileGrid');
+          profileGrid.innerHTML = '';
+
+          json.data.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.profile_name === 'default' ? '' : p.profile_name;
+            opt.textContent = `${p.profile_name} (${p.filename})`;
+            select.appendChild(opt);
+
+            // Card in Profiles Tab
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+              <div class="video-name">👤 Profile: ${p.profile_name}</div>
+              <div class="video-meta">File Token: <code>${p.filename}</code></div>
+              <button class="btn-select-video" onclick="selectProfile('${p.profile_name}')">Gunakan Profil Ini</button>
+            `;
+            profileGrid.appendChild(card);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load profiles:', err);
+      }
+    }
+
+    function selectProfile(pName) {
+      const select = document.getElementById('profileSelect');
+      select.value = pName === 'default' ? '' : pName;
+      loadChannelInfo();
+      switchTab('upload');
+    }
+
+    // Load Channel Info
+    async function loadChannelInfo() {
+      const profile = document.getElementById('profileSelect').value;
+      const channelNameEl = document.getElementById('channelName');
+      channelNameEl.innerText = "Memuat channel...";
+
+      try {
+        const res = await fetch(`/api/channels?profile=${encodeURIComponent(profile)}`);
+        const json = await res.json();
+        if (json.status === 'success' && json.data && json.data.length > 0) {
+          const ch = json.data[0];
+          channelNameEl.innerHTML = `<strong>${ch.title}</strong> (${ch.subscriber_count} subs)`;
+        } else {
+          channelNameEl.innerText = "Channel terhubung";
+        }
+      } catch (err) {
+        channelNameEl.innerText = "Channel Ready";
+      }
+    }
+
+    // Load Local Videos
+    async function loadLocalVideos() {
+      const grid = document.getElementById('scannedVideoGrid');
+      grid.innerHTML = '<div style="color:var(--text-muted);">Memindai...</div>';
+      try {
+        const res = await fetch('/api/videos');
+        const json = await res.json();
+        if (json.status === 'success') {
+          scannedVideos = json.data || [];
+          grid.innerHTML = '';
+
+          if (scannedVideos.length === 0) {
+            grid.innerHTML = '<div style="color:var(--text-dim);">Tidak ada file video di folder project.</div>';
+            return;
+          }
+
+          scannedVideos.forEach(v => {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+              <div class="video-name">📹 ${v.rel_path}</div>
+              <div class="video-meta">Ukuran: ${v.size_formatted}</div>
+              <button class="btn-select-video" onclick="quickSelectServerVideo('${v.rel_path}')">Pilih untuk Upload</button>
+            `;
+            grid.appendChild(card);
+          });
+        }
+      } catch (err) {
+        grid.innerHTML = '<div style="color:#ef4444;">Gagal me-scan video.</div>';
+      }
+    }
+
+    function quickSelectServerVideo(path) {
+      document.querySelectorAll('input[name="uploadMode"]')[1].checked = true;
+      toggleUploadMode();
+      document.getElementById('filePathInput').value = path;
+      const filename = path.split('/').pop().split('\\').pop();
+      document.getElementById('videoTitle').value = filename.substring(0, filename.lastIndexOf('.')) || filename;
+      switchTab('upload');
+    }
+
+    // Submit Upload
+    async function submitUpload(e) {
+      e.preventDefault();
+      const btnSubmit = document.getElementById('btnSubmit');
+      const btnText = document.getElementById('btnSubmitText');
+      const spinner = document.getElementById('btnSpinner');
+      const resultCard = document.getElementById('resultCard');
+
+      resultCard.classList.remove('show');
+      btnSubmit.disabled = true;
+      btnText.innerText = "Mengunggah ke YouTube...";
+      spinner.style.display = "inline-block";
+
+      const mode = document.querySelector('input[name="uploadMode"]:checked').value;
+      const profile = document.getElementById('profileSelect').value;
+
+      try {
+        let res, json;
+
+        if (mode === 'file') {
+          const videoFile = document.getElementById('videoFile').files[0];
+          if (!videoFile) {
+            alert('Silakan pilih file video terlebih dahulu!');
+            btnSubmit.disabled = false;
+            btnText.innerText = "✨ Upload Video ke YouTube";
+            spinner.style.display = "none";
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('video_file', videoFile);
+          const thumbFile = document.getElementById('thumbFile').files[0];
+          if (thumbFile) formData.append('thumbnail_file', thumbFile);
+
+          formData.append('title', document.getElementById('videoTitle').value);
+          formData.append('description', document.getElementById('videoDesc').value);
+          formData.append('tags', tagsList.join(','));
+          formData.append('category_id', document.getElementById('categorySelect').value);
+          formData.append('privacy_status', document.getElementById('privacySelect').value);
+          formData.append('profile', profile);
+
+          const publishAtVal = document.getElementById('publishAtInput').value;
+          if (publishAtVal) {
+            formData.append('publish_at', new Date(publishAtVal).toISOString());
+          }
+
+          res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+        } else {
+          const filePath = document.getElementById('filePathInput').value;
+          if (!filePath) {
+            alert('Silakan isi path file video!');
+            btnSubmit.disabled = false;
+            btnText.innerText = "✨ Upload Video ke YouTube";
+            spinner.style.display = "none";
+            return;
+          }
+
+          const publishAtVal = document.getElementById('publishAtInput').value;
+          let publishAtISO = "";
+          if (publishAtVal) {
+            publishAtISO = new Date(publishAtVal).toISOString();
+          }
+
+          const bodyData = {
+            file_path: filePath,
+            thumbnail_path: document.getElementById('thumbPathInput').value,
+            title: document.getElementById('videoTitle').value,
+            description: document.getElementById('videoDesc').value,
+            tags: tagsList,
+            category_id: document.getElementById('categorySelect').value,
+            privacy_status: document.getElementById('privacySelect').value,
+            publish_at: publishAtISO,
+            profile: profile
+          };
+
+          res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+          });
+        }
+
+        json = await res.json();
+
+        if (res.ok && json.status === 'success') {
+          currentWatchUrl = json.data.watch_url || `https://youtu.be/${json.data.id}`;
+          document.getElementById('resultMsg').innerText = `Video ID: ${json.data.id} | Durasi: ${json.data.duration}`;
+          document.getElementById('watchUrl').innerText = currentWatchUrl;
+          resultCard.classList.add('show');
+        } else {
+          alert('❌ Gagal: ' + (json.message || 'Terjadi kesalahan saat upload'));
+        }
+      } catch (err) {
+        alert('❌ Error Koneksi Server: ' + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        btnText.innerText = "✨ Upload Video ke YouTube";
+        spinner.style.display = "none";
+      }
+    }
+
+    function copyWatchUrl() {
+      navigator.clipboard.writeText(currentWatchUrl);
+      alert('Link YouTube berhasil disalin ke clipboard!');
+    }
+
+    // Snippets Code Preview
+    const snippets = {
+      curl: `curl -X POST http://localhost:8080/api/upload \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "file_path": "./video.mp4",
+    "title": "Tutorial Automasi Golang",
+    "description": "Video diunggah via REST API YouTube Auto-Poster",
+    "tags": ["golang", "tutorial", "automation"],
+    "privacy_status": "private"
+  }'`,
+
+      python: `import requests
+
+url = "http://localhost:8080/api/upload"
+payload = {
+    "file_path": "./video.mp4",
+    "title": "Automated Upload via Python",
+    "description": "Deskripsi dari script Python",
+    "tags": ["python", "youtube", "bot"],
+    "privacy_status": "unlisted"
+}
+
+response = requests.post(url, json=payload)
+print(response.json())`,
+
+      js: `fetch('http://localhost:8080/api/upload', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    file_path: './video.mp4',
+    title: 'Automated Upload via JavaScript',
+    tags: ['js', 'api'],
+    privacy_status: 'private'
+  })
+})
+.then(res => res.json())
+.then(data => console.log(data));`,
+
+      go: `package main
+
+import (
+    "bytes"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    jsonPayload := []byte(\`{
+        "file_path": "./video.mp4",
+        "title": "Upload from Go Client",
+        "privacy_status": "private"
+    }\`)
+
+    resp, err := http.Post("http://localhost:8080/api/upload", "application/json", bytes.NewBuffer(jsonPayload))
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+    fmt.Println("Status Code:", resp.StatusCode)
+}`
+    };
+
+    function showSnippet(lang) {
+      document.querySelectorAll('.snippet-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('snippetBox').textContent = snippets[lang];
+    }
+
+    function updateSnippets() {
+      document.getElementById('snippetBox').textContent = snippets['curl'];
+    }
+  </script>
+</body>
+</html>

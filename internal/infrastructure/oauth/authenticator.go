@@ -22,18 +22,33 @@ func NewGoogleOAuthProvider() *GoogleOAuthProvider {
 	return &GoogleOAuthProvider{}
 }
 
+func HasSecretFile(secretFile string) bool {
+	_, err := os.Stat(secretFile)
+	return err == nil
+}
+
+func SaveClientSecretInputs(clientID, clientSecret, targetPath string) error {
+	creds := InstalledAppCredentials{}
+	creds.Installed.ClientID = clientID
+	creds.Installed.ClientSecret = clientSecret
+	creds.Installed.ProjectID = "youtube-autoposter"
+	creds.Installed.AuthURI = "https://accounts.google.com/o/oauth2/auth"
+	creds.Installed.TokenURI = "https://oauth2.googleapis.com/token"
+	creds.Installed.AuthProviderX509CertURL = "https://www.googleapis.com/oauth2/v1/certs"
+	creds.Installed.RedirectURIs = []string{"http://localhost:8080/callback", "urn:ietf:wg:oauth:2.0:oob"}
+
+	data, err := json.MarshalIndent(creds, "", "  ")
+	if err != nil {
+		return fmt.Errorf("gagal format JSON credentials: %w", err)
+	}
+
+	return os.WriteFile(targetPath, data, 0600)
+}
+
 func (p *GoogleOAuthProvider) GetHTTPClient(ctx context.Context, secretFile, tokenFile string) (*http.Client, error) {
 	b, err := os.ReadFile(secretFile)
 	if err != nil {
-		fmt.Printf("⚠️ File credentials '%s' tidak ditemukan. Membuka wizard penyiapan...\n", secretFile)
-		if wizErr := RunCredentialsWizard(secretFile); wizErr != nil {
-			return nil, fmt.Errorf("wizard setup credentials gagal: %w", wizErr)
-		}
-		// Retry membaca file setelah wizard selesai
-		b, err = os.ReadFile(secretFile)
-		if err != nil {
-			return nil, fmt.Errorf("gagal membaca client_secret file (%s) setelah wizard: %w", secretFile, err)
-		}
+		return nil, fmt.Errorf("file credentials '%s' tidak ditemukan: %w", secretFile, err)
 	}
 
 	config, err := google.ConfigFromJSON(b, youtube.YoutubeUploadScope, youtube.YoutubeReadonlyScope)
@@ -197,4 +212,59 @@ func saveToken(path string, token *oauth2.Token) error {
 	}
 	defer f.Close()
 	return json.NewEncoder(f).Encode(token)
+}
+
+func GenerateAuthURL(secretFile, redirectURL string) (string, error) {
+	b, err := os.ReadFile(secretFile)
+	if err != nil {
+		return "", fmt.Errorf("file credentials '%s' tidak ditemukan: %w", secretFile, err)
+	}
+
+	config, err := google.ConfigFromJSON(b, youtube.YoutubeUploadScope, youtube.YoutubeReadonlyScope)
+	if err != nil {
+		return "", fmt.Errorf("gagal parse client secret JSON: %w", err)
+	}
+
+	if redirectURL != "" {
+		config.RedirectURL = redirectURL
+	} else {
+		config.RedirectURL = "http://localhost:8080/callback"
+	}
+
+	authURL := config.AuthCodeURL(
+		"state-token",
+		oauth2.AccessTypeOffline,
+		oauth2.SetAuthURLParam("prompt", "select_account consent"),
+	)
+	return authURL, nil
+}
+
+func ExchangeCodeForToken(ctx context.Context, secretFile, tokenFile, codeInput, redirectURL string) error {
+	b, err := os.ReadFile(secretFile)
+	if err != nil {
+		return fmt.Errorf("file credentials '%s' tidak ditemukan: %w", secretFile, err)
+	}
+
+	config, err := google.ConfigFromJSON(b, youtube.YoutubeUploadScope, youtube.YoutubeReadonlyScope)
+	if err != nil {
+		return fmt.Errorf("gagal parse client secret JSON: %w", err)
+	}
+
+	if redirectURL != "" {
+		config.RedirectURL = redirectURL
+	} else {
+		config.RedirectURL = "http://localhost:8080/callback"
+	}
+
+	code := extractCodeFromInput(codeInput)
+	if code == "" {
+		return fmt.Errorf("kode otorisasi tidak valid")
+	}
+
+	tok, err := config.Exchange(ctx, code)
+	if err != nil {
+		return fmt.Errorf("gagal menukar code dengan token: %w", err)
+	}
+
+	return saveToken(tokenFile, tok)
 }
