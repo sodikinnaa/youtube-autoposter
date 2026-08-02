@@ -29,6 +29,10 @@ case "$OS" in
   darwin)
     TARGET="youtube-autoposter-darwin-${ARCH}"
     ;;
+  mingw*|msys*|cygwin*|windows*)
+    TARGET="youtube-autoposter-windows-${ARCH}.exe"
+    BINARY_NAME="youtube-autoposter.exe"
+    ;;
   *)
     echo "❌ Sistem Operasi $OS tidak didukung via bash script."
     exit 1

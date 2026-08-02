@@ -6,13 +6,22 @@ Tool CLI ringan & cepat untuk mengunggah video ke YouTube otomatis menggunakan G
 
 ## ⚡ INSTALASI CEPAT (1-LINE COMMAND)
 
-Kamu bisa langsung mendownload binary siap pakai via `curl`:
-
+### 🐧 🍏 Linux / macOS / Git Bash:
 ```bash
 curl -sSL https://raw.githubusercontent.com/sodikinnaa/youtube-autoposter/main/install.sh | bash
 ```
 
-Perintah di atas akan mendeteksi OS & arsitektur komputermu, mengunduh binary rilis terbaru, dan menyertakan panduan AI Agent (`SKILL.md`). Jika binary sudah ada, installer akan otomatis melakukan update ke versi terbaru.
+### 🪟 Windows Command Prompt (CMD):
+```cmd
+curl -sSL https://raw.githubusercontent.com/sodikinnaa/youtube-autoposter/main/install.bat -o install.bat && install.bat
+```
+
+### ⚡ Windows PowerShell:
+```powershell
+iwr -useb https://raw.githubusercontent.com/sodikinnaa/youtube-autoposter/main/install.ps1 | iex
+```
+
+Perintah di atas akan mendeteksi OS & arsitektur komputermu, mengunduh binary rilis terbaru (`youtube-autoposter.exe` di Windows), serta menyertakan panduan AI Agent (`SKILL.md`). Jika binary sudah ada, installer akan otomatis melakukan update ke versi terbaru.
 
 ---
 
