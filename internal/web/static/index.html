@@ -716,41 +716,41 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
           <div>
             <h2 style="font-weight: 800; font-size: 1.4rem;">🧙 Onboarding Wizard: Hubungkan Channel YouTube</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Ikuti langkah demi langkah di bawah ini untuk menghubungkan akun YouTube kamu.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Isi formulir berikut langkah demi langkah menggunakan tombol <strong>Selanjutnya</strong> &amp; <strong>Sebelumnya</strong>.</p>
           </div>
           <div id="wizardStatusBadge" class="status-badge warning">⚠️ Credentials Belum Dikonfigurasi</div>
         </div>
 
-        <!-- Wizard Stepper Indicator -->
+        <!-- Wizard Stepper Indicator (5 Steps) -->
         <div class="wizard-steps">
           <div class="wizard-step-card active" id="stepCard1" onclick="activateWizardStep(1)" style="cursor: pointer;">
             <div class="wizard-step-num">1</div>
-            <div class="wizard-step-title">Langkah 1</div>
-            <div class="wizard-step-desc">Credentials Google</div>
+            <div class="wizard-step-title">Client ID</div>
           </div>
           <div class="wizard-step-card" id="stepCard2" onclick="activateWizardStep(2)" style="cursor: pointer;">
             <div class="wizard-step-num">2</div>
-            <div class="wizard-step-title">Langkah 2</div>
-            <div class="wizard-step-desc">Otorisasi Google</div>
+            <div class="wizard-step-title">Client Secret</div>
           </div>
           <div class="wizard-step-card" id="stepCard3" onclick="activateWizardStep(3)" style="cursor: pointer;">
             <div class="wizard-step-num">3</div>
-            <div class="wizard-step-title">Langkah 3</div>
-            <div class="wizard-step-desc">Connect Channel</div>
+            <div class="wizard-step-title">Link Login</div>
           </div>
           <div class="wizard-step-card" id="stepCard4" onclick="activateWizardStep(4)" style="cursor: pointer;">
             <div class="wizard-step-num">4</div>
-            <div class="wizard-step-title">Langkah 4</div>
-            <div class="wizard-step-desc">Selesai</div>
+            <div class="wizard-step-title">Input Kode</div>
+          </div>
+          <div class="wizard-step-card" id="stepCard5" onclick="activateWizardStep(5)" style="cursor: pointer;">
+            <div class="wizard-step-num">5</div>
+            <div class="wizard-step-title">Selesai</div>
           </div>
         </div>
 
-        <!-- STEP 1: CREDENTIALS INPUT -->
+        <!-- STEP 1: INPUT CLIENT ID -->
         <div id="wizardStep1Content" class="wizard-step-panel">
           <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
-            <div class="card-title" style="color: #c4b5fd;">📝 Langkah 1 dari 3: Input Client ID & Client Secret</div>
+            <div class="card-title" style="color: #c4b5fd;">📝 Langkah 1 dari 5: Input Client ID</div>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-              Dapatkan <code>Client ID</code> & <code>Client Secret</code> dari Google Cloud Console (Desktop App).
+              Masukkan <code>Client ID</code> dari Google Cloud Console (Desktop App).
             </p>
 
             <!-- Redirect URI Info Box -->
@@ -769,6 +769,19 @@
               <label class="form-label" for="wizardClientId">Client ID *</label>
               <input type="text" id="wizardClientId" class="form-control" placeholder="xxxxxx.apps.googleusercontent.com">
             </div>
+
+            <button class="btn-primary" onclick="nextStepFrom1()" style="width: 100%;">Selanjutnya: Input Client Secret ➡️</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: INPUT CLIENT SECRET -->
+        <div id="wizardStep2Content" class="wizard-step-panel" style="display: none;">
+          <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
+            <div class="card-title" style="color: #c4b5fd;">🔑 Langkah 2 dari 5: Input Client Secret</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              Masukkan <code>Client Secret</code> dari Google Cloud Console.
+            </p>
+
             <div class="form-group">
               <label class="form-label" for="wizardClientSecret">Client Secret *</label>
               <input type="password" id="wizardClientSecret" class="form-control" placeholder="GOCSPX-xxxxxx">
@@ -778,37 +791,41 @@
               <label class="form-label" for="wizardJsonContent">Raw Client Secret JSON (Opsional)</label>
               <textarea id="wizardJsonContent" class="form-control" style="height: 70px; font-family: monospace; font-size: 0.75rem;" placeholder='{"installed": {"client_id": "...", "client_secret": "..."}}'></textarea>
             </div>
-            <button class="btn-primary" onclick="saveWizardSecret()" style="width: 100%;">💾 Simpan Credentials & Lanjut ke Langkah 2 ➡️</button>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+              <button class="btn-primary" onclick="activateWizardStep(1)" style="background: rgba(255,255,255,0.1); color: var(--text-muted); flex: 1;">⬅️ Sebelumnya</button>
+              <button class="btn-primary" onclick="saveWizardSecret()" style="flex: 2;">💾 Simpan &amp; Selanjutnya ➡️</button>
+            </div>
           </div>
         </div>
 
-        <!-- STEP 2: OTORISASI LINK -->
-        <div id="wizardStep2Content" class="wizard-step-panel" style="display: none;">
+        <!-- STEP 3: OTORISASI GOOGLE LINK -->
+        <div id="wizardStep3Content" class="wizard-step-panel" style="display: none;">
           <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
-            <div class="card-title" style="color: #93c5fd;">🔗 Langkah 2 dari 3: Otorisasi Akun Google</div>
+            <div class="card-title" style="color: #93c5fd;">🔗 Langkah 3 dari 5: Dapatkan Link Otorisasi Google</div>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-              Klik tombol di bawah untuk membuka halaman login Google dan izinkan akses YouTube. Salin kode yang diberikan Google setelah login.
+              Klik tombol di bawah untuk membuka halaman login Google dan mengizinkan akses YouTube.
             </p>
             <div class="form-group">
-              <button class="btn-primary" onclick="getWizardAuthUrl()" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); width: 100%;">🔑 Generasi & Buka Link Login Google</button>
+              <button class="btn-primary" onclick="getWizardAuthUrl()" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); width: 100%;">🔑 Generasi &amp; Buka Link Login Google</button>
             </div>
             <div id="authUrlContainer" style="display:none; margin-bottom: 1rem; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-sm);">
               <div style="font-size: 0.8rem; color: #93c5fd; margin-bottom: 0.5rem;">Klik link di bawah atau buka di tab browser baru untuk Login:</div>
               <a id="wizardAuthLink" href="#" target="_blank" style="color: #60a5fa; word-break: break-all; font-size: 0.85rem; font-weight: 600;"></a>
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-              <button class="btn-primary" onclick="activateWizardStep(1)" style="background: rgba(255,255,255,0.1); color: var(--text-muted); flex: 1;">⬅️ Kembali ke Langkah 1</button>
-              <button class="btn-primary" onclick="activateWizardStep(3)" style="flex: 2;">Lanjut ke Langkah 3 (Input Kode) ➡️</button>
+              <button class="btn-primary" onclick="activateWizardStep(2)" style="background: rgba(255,255,255,0.1); color: var(--text-muted); flex: 1;">⬅️ Sebelumnya</button>
+              <button class="btn-primary" onclick="activateWizardStep(4)" style="flex: 2;">Selanjutnya: Input Kode ➡️</button>
             </div>
           </div>
         </div>
 
-        <!-- STEP 3: INPUT KODE & CONNECT -->
-        <div id="wizardStep3Content" class="wizard-step-panel" style="display: none;">
+        <!-- STEP 4: INPUT KODE & CONNECT -->
+        <div id="wizardStep4Content" class="wizard-step-panel" style="display: none;">
           <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
-            <div class="card-title" style="color: #6ee7b7;">⚡ Langkah 3 dari 3: Input Kode Otorisasi & Connect</div>
+            <div class="card-title" style="color: #6ee7b7;">⚡ Langkah 4 dari 5: Input Kode Otorisasi</div>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-              Paste Kode Otorisasi atau URL dari Google yang kamu dapatkan setelah mengizinkan akses.
+              Paste Kode Otorisasi atau URL dari browser yang kamu dapatkan setelah mengizinkan akses.
             </p>
             <div class="form-group">
               <label class="form-label" for="wizardProfileName">Nama Alias Profil Akun (Opsional)</label>
@@ -819,14 +836,14 @@
               <input type="text" id="wizardAuthCode" class="form-control" placeholder="4/0AeaYSH...">
             </div>
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-              <button class="btn-primary" onclick="activateWizardStep(2)" style="background: rgba(255,255,255,0.1); color: var(--text-muted); flex: 1;">⬅️ Kembali ke Langkah 2</button>
-              <button class="btn-primary" onclick="exchangeWizardCode()" style="background: linear-gradient(135deg, var(--accent-green), #059669); flex: 2;">🎉 Verifikasi & Connect Channel</button>
+              <button class="btn-primary" onclick="activateWizardStep(3)" style="background: rgba(255,255,255,0.1); color: var(--text-muted); flex: 1;">⬅️ Sebelumnya</button>
+              <button class="btn-primary" onclick="exchangeWizardCode()" style="background: linear-gradient(135deg, var(--accent-green), #059669); flex: 2;">🎉 Verifikasi &amp; Connect Channel</button>
             </div>
           </div>
         </div>
 
-        <!-- STEP 4: RESULT / CONNECTED CHANNEL -->
-        <div id="wizardStep4Content" class="wizard-step-panel" style="display: none;">
+        <!-- STEP 5: RESULT / CONNECTED CHANNEL -->
+        <div id="wizardStep5Content" class="wizard-step-panel" style="display: none;">
           <div id="wizardChannelResult" style="padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md);">
             <div style="display: flex; align-items: center; justify-content: space-between;">
               <div style="display: flex; align-items: center; gap: 1rem;">
@@ -1087,12 +1104,12 @@
             banner.style.display = 'flex';
             badge.className = 'status-badge warning';
             badge.innerText = '🔑 Akun YouTube Belum Terhubung';
-            activateWizardStep(2);
+            activateWizardStep(3);
           } else {
             banner.style.display = 'none';
             badge.className = 'status-badge success';
             badge.innerText = '✅ Terhubung ke Channel YouTube';
-            activateWizardStep(4);
+            activateWizardStep(5);
           }
         }
       } catch (err) {
@@ -1121,7 +1138,7 @@
           alert('✅ Client Secret credentials berhasil disimpan!');
           checkAuthStatus();
           getWizardAuthUrl();
-          activateWizardStep(2);
+          activateWizardStep(3);
         } else {
           alert('❌ Gagal: ' + json.message);
         }
@@ -1140,7 +1157,7 @@
           link.href = json.data.auth_url;
           link.innerText = json.data.auth_url;
           container.style.display = 'block';
-          activateWizardStep(2);
+          activateWizardStep(3);
         } else {
           alert('⚠️ Gagal mengambil URL Otorisasi: ' + (json.message || 'Simpan credentials terlebih dahulu.'));
         }
@@ -1176,7 +1193,7 @@
             document.getElementById('wChannelTitle').innerText = ch.title;
             document.getElementById('wChannelMeta').innerText = `Subscribers: ${ch.subscriber_count} | Videos: ${ch.video_count}`;
           }
-          activateWizardStep(4);
+          activateWizardStep(5);
         } else {
           alert('❌ Gagal: ' + json.message);
         }
@@ -1268,8 +1285,18 @@
       });
     }
 
+    function nextStepFrom1() {
+      const clientId = document.getElementById('wizardClientId').value.trim();
+      const jsonContent = document.getElementById('wizardJsonContent') ? document.getElementById('wizardJsonContent').value.trim() : '';
+      if (!clientId && !jsonContent) {
+        alert('Silakan masukkan Client ID terlebih dahulu!');
+        return;
+      }
+      activateWizardStep(2);
+    }
+
     function activateWizardStep(stepNum) {
-      [1, 2, 3, 4].forEach(i => {
+      [1, 2, 3, 4, 5].forEach(i => {
         const card = document.getElementById(`stepCard${i}`);
         const panel = document.getElementById(`wizardStep${i}Content`);
         if (card) card.classList.remove('active');
