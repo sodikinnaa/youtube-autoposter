@@ -26,6 +26,11 @@ move /Y "%BINARY_NAME%.tmp" "%BINARY_NAME%" >nul
 echo 📄 Mendownload file panduan AI Agent (SKILL.md)...
 curl -sSL "%RAW_SKILL_URL%" -o "%SKILL_FILE%"
 
+if not exist "sample_video.mp4" (
+    echo 📹 Mendownload sample video publik ^(sample_video.mp4^) untuk uji coba otomatis...
+    curl -sSL "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/person-bicycle-car-detection.mp4" -o "sample_video.mp4"
+)
+
 echo.
 echo =======================================================
 echo ✅ SUKSES INSTALL / UPDATE YOUTUBE AUTO-POSTER (WINDOWS CMD)!

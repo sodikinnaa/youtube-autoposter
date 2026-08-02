@@ -723,27 +723,27 @@
 
         <!-- Wizard Stepper Indicator -->
         <div class="wizard-steps">
-          <div class="wizard-step-card active" id="stepCard1">
+          <div class="wizard-step-card active" id="stepCard1" onclick="activateWizardPhase(1)" style="cursor: pointer;">
             <div class="wizard-step-num">1</div>
-            <div class="wizard-step-title">Google Credentials</div>
+            <div class="wizard-step-title">Fase 1: Credentials</div>
             <div class="wizard-step-desc">Input Client ID & Secret</div>
           </div>
-          <div class="wizard-step-card" id="stepCard2">
+          <div class="wizard-step-card" id="stepCard2" onclick="activateWizardPhase(2)" style="cursor: pointer;">
             <div class="wizard-step-num">2</div>
-            <div class="wizard-step-title">Otorisasi Google</div>
-            <div class="wizard-step-desc">Buka Link Login OAuth</div>
+            <div class="wizard-step-title">Fase 2: Otorisasi</div>
+            <div class="wizard-step-desc">Buka Link Login Google</div>
           </div>
-          <div class="wizard-step-card" id="stepCard3">
+          <div class="wizard-step-card" id="stepCard3" onclick="activateWizardPhase(3)" style="cursor: pointer;">
             <div class="wizard-step-num">3</div>
-            <div class="wizard-step-title">Koneksi Channel</div>
-            <div class="wizard-step-desc">Simpan Token & Hubungkan</div>
+            <div class="wizard-step-title">Fase 3: Verifikasi</div>
+            <div class="wizard-step-desc">Hubungkan Channel</div>
           </div>
         </div>
 
         <div class="grid-2">
-          <!-- Step 1 Form: Credentials -->
-          <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
-            <div class="card-title">📝 Langkah 1: Client ID & Client Secret</div>
+          <!-- FASE 1: CREDENTIALS SETUP -->
+          <div class="card" id="fase1Block" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
+            <div class="card-title" style="color: #c4b5fd;">📝 FASE 1: Input Client ID & Client Secret</div>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
               Dapatkan <code>Client ID</code> & <code>Client Secret</code> dari Google Cloud Console (Desktop App).
             </p>
@@ -771,45 +771,56 @@
             <div style="font-size: 0.8rem; text-align: center; color: var(--text-dim); margin: 0.5rem 0;">— ATAU PASTE ISI JSON FILE —</div>
             <div class="form-group">
               <label class="form-label" for="wizardJsonContent">Raw Client Secret JSON (Opsional)</label>
-              <textarea id="wizardJsonContent" class="form-control" style="height: 80px; font-family: monospace; font-size: 0.75rem;" placeholder='{"installed": {"client_id": "...", "client_secret": "..."}}'></textarea>
+              <textarea id="wizardJsonContent" class="form-control" style="height: 70px; font-family: monospace; font-size: 0.75rem;" placeholder='{"installed": {"client_id": "...", "client_secret": "..."}}'></textarea>
             </div>
-            <button class="btn-primary" onclick="saveWizardSecret()" style="width: 100%;">💾 Simpan Credentials</button>
+            <button class="btn-primary" onclick="saveWizardSecret()" style="width: 100%;">💾 Simpan Credentials & Lanjut ke Fase 2 ➡️</button>
           </div>
 
-          <!-- Step 2 & 3 Form: Auth Link & Exchange Code -->
-          <div class="card" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
-            <div class="card-title">🔑 Langkah 2 & 3: Otorisasi & Hubungkan</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-              Klik tombol di bawah untuk mendapatkan link login Google, lalu salin Kode Otorisasi yang kamu dapatkan.
-            </p>
-            <div class="form-group">
-              <button class="btn-primary" onclick="getWizardAuthUrl()" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); width: 100%;">🔗 Dapatkan Link Otorisasi Google</button>
+          <!-- FASE 2 & 3: OTORISASI & VERIFIKASI -->
+          <div>
+            <!-- FASE 2: LINK OTORISASI -->
+            <div class="card" id="fase2Block" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); margin-bottom: 1rem;">
+              <div class="card-title" style="color: #93c5fd;">🔗 FASE 2: Otorisasi Akun Google</div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Dapatkan Link Login Otorisasi Google untuk mengizinkan aplikasi meng-upload video ke Channel YouTube kamu.
+              </p>
+              <div class="form-group">
+                <button class="btn-primary" onclick="getWizardAuthUrl()" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); width: 100%;">🔑 Generasi Link Otorisasi Google</button>
+              </div>
+              <div id="authUrlContainer" style="display:none; margin-bottom: 0.5rem; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-sm);">
+                <div style="font-size: 0.8rem; color: #93c5fd; margin-bottom: 0.5rem;">Klik link di bawah atau buka di tab browser baru untuk Login:</div>
+                <a id="wizardAuthLink" href="#" target="_blank" style="color: #60a5fa; word-break: break-all; font-size: 0.85rem; font-weight: 600;"></a>
+              </div>
             </div>
-            <div id="authUrlContainer" style="display:none; margin-bottom: 1rem; padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-sm);">
-              <div style="font-size: 0.8rem; color: #93c5fd; margin-bottom: 0.5rem;">Buka link otorisasi berikut di tab browser baru:</div>
-              <a id="wizardAuthLink" href="#" target="_blank" style="color: #60a5fa; word-break: break-all; font-size: 0.85rem; font-weight: 600;"></a>
+
+            <!-- FASE 3: EXCHANGE CODE & CONNECT -->
+            <div class="card" id="fase3Block" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);">
+              <div class="card-title" style="color: #6ee7b7;">⚡ FASE 3: Hubungkan Channel</div>
+              <div class="form-group">
+                <label class="form-label" for="wizardProfileName">Nama Alias Profil Akun (Opsional)</label>
+                <input type="text" id="wizardProfileName" class="form-control" placeholder="default (atau: channel_kedua)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="wizardAuthCode">Kode Otorisasi (Paste Code / URL Lengkap di sini) *</label>
+                <input type="text" id="wizardAuthCode" class="form-control" placeholder="4/0AeaYSH...">
+              </div>
+              <button class="btn-primary" onclick="exchangeWizardCode()" style="background: linear-gradient(135deg, var(--accent-green), #059669); width: 100%;">🎉 Verifikasi & Connect Channel YouTube</button>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="wizardProfileName">Nama Alias Profil Akun (Opsional)</label>
-              <input type="text" id="wizardProfileName" class="form-control" placeholder="default (atau: channel_kedua)">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="wizardAuthCode">Kode Otorisasi (Paste Code / URL Lengkap di sini) *</label>
-              <input type="text" id="wizardAuthCode" class="form-control" placeholder="4/0AeaYSH...">
-            </div>
-            <button class="btn-primary" onclick="exchangeWizardCode()" style="background: linear-gradient(135deg, var(--accent-green), #059669); width: 100%;">⚡ Hubungkan Channel YouTube</button>
           </div>
         </div>
 
         <!-- Connected Channel Result Card -->
         <div id="wizardChannelResult" style="display:none; margin-top: 1.5rem; padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md);">
-          <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="font-size: 2.5rem;">📺</div>
-            <div>
-              <div style="font-size: 0.8rem; color: #6ee7b7; text-transform: uppercase; font-weight: 700;">CHANNEL TERHUBUNG SUKSES 🎉</div>
-              <h3 id="wChannelTitle" style="font-weight: 800; font-size: 1.25rem;">-</h3>
-              <div id="wChannelMeta" style="font-size: 0.85rem; color: var(--text-muted);">Subscribers: - | Videos: -</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div style="font-size: 2.5rem;">📺</div>
+              <div>
+                <div style="font-size: 0.8rem; color: #6ee7b7; text-transform: uppercase; font-weight: 700;">CHANNEL TERHUBUNG SUKSES 🎉</div>
+                <h3 id="wChannelTitle" style="font-weight: 800; font-size: 1.25rem;">-</h3>
+                <div id="wChannelMeta" style="font-size: 0.85rem; color: var(--text-muted);">Subscribers: - | Videos: -</div>
+              </div>
             </div>
+            <button class="btn-primary" onclick="switchTab('upload')" style="background: var(--accent-green);">🚀 Lanjut Upload Video Pertama</button>
           </div>
         </div>
       </div>
@@ -1047,28 +1058,22 @@
           const profiles = json.data.profiles || [];
           const banner = document.getElementById('onboardingBanner');
           const badge = document.getElementById('wizardStatusBadge');
-          const step1 = document.getElementById('stepCard1');
-          const step2 = document.getElementById('stepCard2');
-          const step3 = document.getElementById('stepCard3');
 
           if (!hasSecret) {
             banner.style.display = 'flex';
             badge.className = 'status-badge warning';
             badge.innerText = '⚠️ Credentials Belum Dikonfigurasi';
-            step1.classList.add('active');
+            activateWizardPhase(1);
           } else if (profiles.length === 0) {
             banner.style.display = 'flex';
             badge.className = 'status-badge warning';
             badge.innerText = '🔑 Akun YouTube Belum Terhubung';
-            step1.classList.remove('active');
-            step2.classList.add('active');
+            activateWizardPhase(2);
           } else {
             banner.style.display = 'none';
             badge.className = 'status-badge success';
             badge.innerText = '✅ Terhubung ke Channel YouTube';
-            step1.classList.remove('active');
-            step2.classList.remove('active');
-            step3.classList.add('active');
+            activateWizardPhase(3);
           }
         }
       } catch (err) {
@@ -1097,6 +1102,7 @@
           alert('✅ Client Secret credentials berhasil disimpan!');
           checkAuthStatus();
           getWizardAuthUrl();
+          activateWizardPhase(2);
         } else {
           alert('❌ Gagal: ' + json.message);
         }
@@ -1115,8 +1121,7 @@
           link.href = json.data.auth_url;
           link.innerText = json.data.auth_url;
           container.style.display = 'block';
-          document.getElementById('stepCard1').classList.remove('active');
-          document.getElementById('stepCard2').classList.add('active');
+          activateWizardPhase(2);
         } else {
           alert('⚠️ Gagal mengambil URL Otorisasi: ' + (json.message || 'Simpan credentials terlebih dahulu.'));
         }
@@ -1146,14 +1151,13 @@
           checkAuthStatus();
           loadProfiles();
           loadChannelInfo();
+          activateWizardPhase(3);
 
           if (json.data && json.data.length > 0) {
             const ch = json.data[0];
             document.getElementById('wChannelTitle').innerText = ch.title;
             document.getElementById('wChannelMeta').innerText = `Subscribers: ${ch.subscriber_count} | Videos: ${ch.video_count}`;
             document.getElementById('wizardChannelResult').style.display = 'block';
-            document.getElementById('stepCard2').classList.remove('active');
-            document.getElementById('stepCard3').classList.add('active');
           }
         } else {
           alert('❌ Gagal: ' + json.message);
@@ -1246,30 +1250,60 @@
       });
     }
 
+    function activateWizardPhase(phaseNum) {
+      document.getElementById('stepCard1').classList.remove('active');
+      document.getElementById('stepCard2').classList.remove('active');
+      document.getElementById('stepCard3').classList.remove('active');
+
+      document.getElementById(`stepCard${phaseNum}`).classList.add('active');
+
+      const fase1 = document.getElementById('fase1Block');
+      const fase2 = document.getElementById('fase2Block');
+      const fase3 = document.getElementById('fase3Block');
+
+      if (phaseNum === 1) {
+        fase1.style.borderColor = 'var(--accent-purple)';
+        fase2.style.borderColor = 'var(--border-color)';
+        fase3.style.borderColor = 'var(--border-color)';
+      } else if (phaseNum === 2) {
+        fase1.style.borderColor = 'var(--border-color)';
+        fase2.style.borderColor = 'var(--accent-blue)';
+        fase3.style.borderColor = 'var(--border-color)';
+      } else if (phaseNum === 3) {
+        fase1.style.borderColor = 'var(--border-color)';
+        fase2.style.borderColor = 'var(--border-color)';
+        fase3.style.borderColor = 'var(--accent-green)';
+      }
+    }
+
     // Load Profiles
     async function loadProfiles() {
       try {
         const res = await fetch('/api/profiles');
         const json = await res.json();
-        if (json.status === 'success') {
+        if (json.status === 'success' && Array.isArray(json.data)) {
           const select = document.getElementById('profileSelect');
           select.innerHTML = '';
           const profileGrid = document.getElementById('profileGrid');
           profileGrid.innerHTML = '';
 
           json.data.forEach(p => {
+            const pName = p.profile_name || 'default';
+            const dName = p.name || (pName === 'default' ? 'Default Account' : pName);
+            const tFile = p.token_file || 'token.json';
+
             const opt = document.createElement('option');
-            opt.value = p.profile_name === 'default' ? '' : p.profile_name;
-            opt.textContent = `${p.profile_name} (${p.filename})`;
+            opt.value = pName === 'default' ? '' : pName;
+            opt.textContent = `${dName} (${tFile})`;
             select.appendChild(opt);
 
             // Card in Profiles Tab
             const card = document.createElement('div');
             card.className = 'video-card';
             card.innerHTML = `
-              <div class="video-name">👤 Profile: ${p.profile_name}</div>
-              <div class="video-meta">File Token: <code>${p.filename}</code></div>
-              <button class="btn-select-video" onclick="selectProfile('${p.profile_name}')">Gunakan Profil Ini</button>
+              <div class="video-name">👤 Profile: ${dName}</div>
+              <div class="video-meta">File Token: <code>${tFile}</code> | Alias: <code>${pName}</code></div>
+              <button class="btn-select-video" onclick="selectProfile('${pName}')">Gunakan Profil Ini</button>
             `;
             profileGrid.appendChild(card);
           });

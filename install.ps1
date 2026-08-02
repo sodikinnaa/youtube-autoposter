@@ -30,6 +30,15 @@ try {
     Write-Host "⚠️ Gagal mendownload SKILL.md, mengabaikan..." -ForegroundColor Yellow
 }
 
+if (-not (Test-Path -Path "sample_video.mp4")) {
+    try {
+        Write-Host "📹 Mendownload sample video publik (sample_video.mp4) untuk uji coba otomatis..." -ForegroundColor Cyan
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/person-bicycle-car-detection.mp4" -OutFile "sample_video.mp4"
+    } catch {
+        Write-Host "⚠️ Gagal mendownload sample_video.mp4, mengabaikan..." -ForegroundColor Yellow
+    }
+}
+
 Write-Host ""
 Write-Host "=======================================================" -ForegroundColor Green
 Write-Host "✅ SUKSES INSTALL / UPDATE YOUTUBE AUTO-POSTER (WINDOWS)!" -ForegroundColor Green

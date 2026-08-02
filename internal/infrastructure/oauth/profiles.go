@@ -7,8 +7,9 @@ import (
 )
 
 type AccountProfile struct {
-	Name      string `json:"name"`
-	TokenFile string `json:"token_file"`
+	Name        string `json:"name"`
+	ProfileName string `json:"profile_name"`
+	TokenFile   string `json:"token_file"`
 }
 
 // ListProfiles scans current directory for token files (token.json, token_*.json)
@@ -20,16 +21,21 @@ func ListProfiles() ([]AccountProfile, error) {
 
 	var profiles []AccountProfile
 	for _, file := range files {
-		name := strings.TrimSuffix(file, ".json")
-		name = strings.TrimPrefix(name, "token_")
-		if name == "token" {
-			name = "Default Account"
+		rawName := strings.TrimSuffix(file, ".json")
+		rawName = strings.TrimPrefix(rawName, "token_")
+		if rawName == "token" {
+			rawName = "default"
+		}
+		displayName := rawName
+		if displayName == "default" {
+			displayName = "Default Account"
 		} else {
-			name = strings.Title(strings.ReplaceAll(name, "_", " "))
+			displayName = strings.Title(strings.ReplaceAll(displayName, "_", " "))
 		}
 		profiles = append(profiles, AccountProfile{
-			Name:      name,
-			TokenFile: file,
+			Name:        displayName,
+			ProfileName: rawName,
+			TokenFile:   file,
 		})
 	}
 	return profiles, nil

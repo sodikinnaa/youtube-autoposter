@@ -63,6 +63,14 @@ curl -sSL "$RAW_SKILL_URL" -o "$SKILL_FILE" || {
   echo "⚠️ Gagal mendownload SKILL.md, mengabaikan..."
 }
 
+# Download sample video publik untuk siap uji coba
+SAMPLE_VIDEO="sample_video.mp4"
+SAMPLE_VIDEO_URL="https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/person-bicycle-car-detection.mp4"
+if [ ! -f "$SAMPLE_VIDEO" ]; then
+  echo "📹 Mendownload sample video publik ($SAMPLE_VIDEO) untuk uji coba otomatis..."
+  curl -sSL "$SAMPLE_VIDEO_URL" -o "$SAMPLE_VIDEO" || true
+fi
+
 echo ""
 echo "======================================================="
 echo "✅ SUKSES INSTALL / UPDATE YOUTUBE AUTO-POSTER!"
