@@ -1034,9 +1034,10 @@
     });
 
     function setCallbackUriText() {
-      const port = window.location.port || '8888';
+      const protocol = window.location.protocol || 'http:';
       const host = window.location.hostname || 'localhost';
-      const uri = `http://${host}:${port}/callback`;
+      const port = window.location.port ? `:${window.location.port}` : (protocol === 'https:' ? '' : ':8888');
+      const uri = `${protocol}//${host}${port}/callback`;
       document.getElementById('callbackUriText').innerText = uri;
     }
 
