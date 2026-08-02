@@ -107,6 +107,36 @@ Untuk AI Agent yang ingin menginspeksi lingkungan atau mendapatkan respon terstr
 
 ---
 
+## 🪟 PANDUAN PENGGUNA WINDOWS (CMD & POWERSHELL)
+
+Aplikasi `youtube-autoposter.exe` berjalan penuh secara *native* di Windows 10 dan Windows 11 tanpa memerlukan instalasi Go atau dependensi tambahan.
+
+### 1. Jalankan Web UI Studio di Windows:
+Buka **Command Prompt (CMD)** atau **PowerShell**, navigasi ke folder aplikasi, lalu jalankan:
+
+```cmd
+youtube-autoposter.exe -web
+```
+Atau dengan port kustom:
+```cmd
+youtube-autoposter.exe -web -port 9090
+```
+Setelah jalan, buka browser dan akses `http://localhost:8080` (atau port yang tampil di terminal).
+
+> **💡 Fitur Dynamic Port Auto-Fallback**: Jika port `8080` sedang digunakan oleh aplikasi lain di Windows, server otomatis mencari dan mengikat ke port bebas lainnya (seperti `8081`, `8888`) secara otomatis.
+
+### 2. Jalankan Interactive Terminal Wizard di Windows:
+```cmd
+youtube-autoposter.exe -i
+```
+
+### 3. Jalankan Otomasi / Scripting via CMD & Batch:
+```cmd
+youtube-autoposter.exe -file "C:\Videos\my_video.mp4" -thumbnail "C:\Images\thumb.jpg" -title "Video Tutorial Windows" -privacy private
+```
+
+---
+
 ## ⚙️ TABEL FLAG LENGKAP
 
 | Flag | Fungsi | Default |
